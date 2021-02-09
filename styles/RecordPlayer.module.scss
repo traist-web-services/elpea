@@ -1,0 +1,176 @@
+.recordContainer {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  width: 400px;
+  height: 300px;
+  border-radius: 10px;
+  box-shadow: 0 6px #99907e;
+  background: var(--record-player);
+  margin: auto;
+  --record-black: #2a2928;
+  --needle-tip: #aaa9ad;
+  --record-arm: #aaa9ad;
+  --arm-tip: #2a2928;
+  --arm-pivot: #2a2928;
+  --label: #da5b33;
+  --tracks: #ada9a0;
+  --record-player: #caa472;
+}
+
+.pauseButton {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 52px;
+  height: 52px;
+  color: var(--record-black);
+  @apply shadow-inner rounded-full cursor-pointer;
+}
+
+.record {
+  position: relative;
+  margin: 19px auto;
+  width: 262px;
+  height: 262px;
+  border-radius: 50%;
+  background: linear-gradient(
+        30deg,
+        transparent 40%,
+        rgba(42, 41, 40, 0.85) 40%
+      )
+      no-repeat 100% 0,
+    linear-gradient(60deg, rgba(42, 41, 40, 0.85) 60%, transparent 60%)
+      no-repeat 0 100%,
+    repeating-radial-gradient(
+      var(--record-black),
+      var(--record-black) 4px,
+      var(--tracks) 5px,
+      var(--record-black) 6px
+    );
+  background-size: 50% 100%, 100% 50%, 100% 100%;
+  &.playing {
+    -webkit-animation-name: rotate;
+    -webkit-animation-duration: 1.8s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+  }
+}
+
+/*.playing .recordArm {
+  Max rotation is 35, min is 14 
+  --rotation: 14deg;
+}*/
+
+.recordLabel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--label), inset 0 0 0 0 var(--label),
+    inset 0 0 0 5px var(--record-black);
+  /* background-image: url('https://placehold.it/640x640'); */
+  background-size: contain;
+  background-position: 50% 50%;
+  &.playing {
+    -webkit-animation-name: rotate-label;
+    -webkit-animation-duration: 1.8s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+  }
+}
+
+.recordArm {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  -moz-transform: rotate(var(--rotation));
+  -webkit-transform: rotate(var(--rotation));
+  transform: rotate(var(--rotation));
+  transform-origin: 50% 20px;
+  transition-property: transform;
+  transition-duration: 1s;
+  .arm {
+    background: var(--record-arm);
+    width: 10px;
+    height: 120px;
+    border-radius: 30px 30px 30px 0px;
+  }
+
+  .armPivot {
+    background: var(--arm-pivot);
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 10px;
+    left: -5px;
+    border-radius: 50%;
+  }
+
+  .armElbow {
+    background: var(--record-arm);
+    width: 10px;
+    position: relative;
+    top: -6px;
+    left: -10px;
+    height: 80px;
+    transform: rotate(15deg);
+  }
+
+  .tip {
+    background: var(--arm-tip);
+    width: 24px;
+    height: 40px;
+    position: absolute;
+    left: -7px;
+    bottom: -30px;
+    border-radius: 3px;
+  }
+
+  .needle {
+    background: var(--needle-tip);
+    width: 2px;
+    height: 6px;
+    position: absolute;
+    left: 11px;
+    bottom: -4px;
+    border-radius: 3px;
+  }
+}
+
+@-moz-keyframes rotate {
+  100% {
+    -moz-transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes rotate {
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@keyframes rotate {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@-moz-keyframes rotate-label {
+  100% {
+    -moz-transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@-webkit-keyframes rotate-label {
+  100% {
+    -webkit-transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@keyframes rotate-label {
+  100% {
+    -webkit-transform: translate(-50%, -50%) rotate(360deg);
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
