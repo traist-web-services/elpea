@@ -13,11 +13,29 @@ export default function App({ session }) {
   const [percentageProgress, setPercentageProgress] = useState(0);
   const [labelImage, setLabelImage] = useState("");
   const [spotifyPlayer, setSpotifyPlayer] = useState(null);
-  const [playingAlbum, setPlayingAlbum] = useState({ name: "", tracks: [] });
+  const [playingAlbum, setPlayingAlbum] = useState({
+    artist: "",
+    name: "",
+    tracks: [],
+  });
   const [playingTrack, setPlayingTrack] = useState({
     id: 0,
   });
   const [currentProgress, setCurrentProgress] = useState(0);
+
+  /*
+
+  {
+    playing: boolean,
+    album: {
+      artist: string,
+      name: string,
+
+    },
+
+  }
+
+  */
   const playWithSpotify = (uri: string, image: string) => {
     if (!spotifyPlayer) {
       console.error("Player not ready");
@@ -36,6 +54,7 @@ export default function App({ session }) {
       .then((data) => {
         const album = data.albums[0];
         setPlayingAlbum({
+          artist: album.artists.map((artist) => artist.name).join(", "),
           name: album.name,
           tracks: album.tracks.items,
         });

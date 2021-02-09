@@ -2,11 +2,13 @@ import EqualizerIcon from "@components/Icons/EqualizerIcon";
 
 export default function TrackList({
   playingTrack,
-  playingAlbum = { name: "", tracks: [] },
+  playingAlbum = { name: "", tracks: [], artist: "" },
 }) {
   return (
     <>
-      <h2 className="text-white text-3xl mb-4">{playingAlbum.name}</h2>
+      <h2 className="text-white text-3xl mb-4">
+        {playingAlbum.name} ({playingAlbum.artist})
+      </h2>
       <ol className="text-white text-xl list-decimal">
         {playingAlbum.tracks.map((track, index) => {
           return (
