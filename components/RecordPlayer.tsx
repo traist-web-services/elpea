@@ -1,26 +1,20 @@
-import { useState } from "react";
-
 import styles from "@styles/RecordPlayer.module.scss";
 
 interface RecordPlayerProps {
-  percentageProgress?: number;
-  playing?: boolean;
-  labelImage?: string;
+  nowPlaying: any;
   pause: () => void;
 }
-export default function RecordPlayer({
-  percentageProgress = 0,
-  playing = false,
-  labelImage = null,
-  pause,
-}: RecordPlayerProps) {
+export default function RecordPlayer({ nowPlaying, pause }: RecordPlayerProps) {
   const minAngle = 14;
   const maxAngle = 35;
   const difference = maxAngle - minAngle;
+  const {
+    playing,
+    msPlayed,
+    album: { duration, image },
+  } = nowPlaying;
   const rotationDegree =
-    playing && percentageProgress > 0
-      ? minAngle + percentageProgress * difference
-      : 0;
+    playing && msPlayed > 0 ? minAngle + (msPlayed / duration) * difference : 0;
   return (
     <>
       <div className={`${styles.recordContainer}`}>
@@ -30,7 +24,7 @@ export default function RecordPlayer({
         <div
           className={`${styles.recordLabel}  ${playing ? styles.playing : ""}`}
           style={{
-            backgroundImage: `url('${labelImage}')`,
+            backgroundImage: `url('${image}')`,
           }}
         ></div>
         <div
@@ -47,7 +41,10 @@ export default function RecordPlayer({
             </div>
           </div>
         </div>
-        <div className={styles.pauseButton} onClick={() => pause()}>
+        <div
+          className={styles.pauseButton}
+          onClick={() => (playing ? pause() : "")}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"

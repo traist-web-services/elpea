@@ -7,7 +7,7 @@ export default NextAuth({
       clientId: process.env.SPOTIFY_CLIENT_ID,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
       scope:
-        "user-library-read streaming user-modify-playback-state user-read-email user-read-private",
+        "user-library-read streaming user-read-playback-state user-modify-playback-state user-read-email user-read-private",
     }),
   ],
   callbacks: {

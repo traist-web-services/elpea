@@ -3,7 +3,7 @@ import { useState } from "react";
 interface LPProps {
   previewImage: string;
   spotifyId: string;
-  playWithSpotify: (spotifyId: string, previewImage: string) => void;
+  playWithSpotify: (uri: string) => void;
 }
 export default function LP({
   previewImage,
@@ -16,7 +16,7 @@ export default function LP({
       className="group cursor-pointer relative flex-shrink-0 w-48 h-48 mx-4 shadow-lg"
       onMouseOver={() => setShowLP(true)}
       onMouseOut={() => setShowLP(false)}
-      onClick={() => playWithSpotify(spotifyId, previewImage)}
+      onClick={() => playWithSpotify(spotifyId)}
     >
       <img
         src={previewImage}

@@ -7,7 +7,7 @@ import ArtistLabel from "@components/ArtistLabel";
 
 interface CoverFlowProps {
   session: any;
-  playWithSpotify: () => void;
+  playWithSpotify: (uri: string) => void;
 }
 export default function CoverFlow({
   session,
@@ -26,12 +26,15 @@ export default function CoverFlow({
   const { data, error } = useSWR(mounted ? endpoint : null, fetcher);
 
   if (error) {
-    console.log(error);
+    console.error(error);
     signIn("spotify", { callbackUrl: process.env.REDIRECT_URI });
   }
 
   const artists = {};
   data?.items?.forEach(({ track }) => {
+    if (track.album.total_tracks < 2) {
+      return;
+    }
     const albumObj = {
       name: track.album.name,
       spotifyId: track.album.id,
