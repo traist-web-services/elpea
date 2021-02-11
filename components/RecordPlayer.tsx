@@ -14,7 +14,8 @@ export default function RecordPlayer({ nowPlaying, pause }: RecordPlayerProps) {
     album: { duration, image, tracks },
     track,
   } = nowPlaying;
-  const trackIndex = tracks.findIndex((el: Track) => {
+  // TODO: Fix the type here
+  const trackIndex = tracks.findIndex((el: any) => {
     return el.name === track.name;
   });
   const playedTracks = tracks.slice(0, trackIndex);

@@ -1,5 +1,6 @@
 {
   "name": "elpea",
+  "description": "Ever wondered what it was like to put on a 33⅓ RPM vinyl and listen to a whole album?",
   "version": "0.1.0",
   "private": true,
   "scripts": {

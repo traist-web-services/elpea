@@ -228,13 +228,15 @@ export default function App({ session }) {
     });
   };
 
-  window.onSpotifyWebPlaybackSDKReady = async () => {
+  // TODO: this is a bit of an ugly type hack
+  let myWindow = window as any;
+  myWindow.onSpotifyWebPlaybackSDKReady = async () => {
     const currentSession = await getSession();
     const token = currentSession?.user?.accessToken;
     let interval = null;
     let stop = false;
     let paused = false;
-    const player = new window.Spotify.Player({
+    const player = new myWindow.Spotify.Player({
       name: process.env.brandName,
       getOAuthToken: (cb: (token: string) => void) => {
         cb(token);
