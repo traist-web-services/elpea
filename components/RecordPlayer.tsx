@@ -11,10 +11,20 @@ export default function RecordPlayer({ nowPlaying, pause }: RecordPlayerProps) {
   const {
     playing,
     msPlayed,
-    album: { duration, image },
+    album: { duration, image, tracks },
+    track,
   } = nowPlaying;
+  const trackIndex = tracks.findIndex((el: Track) => {
+    return el.name === track.name;
+  });
+  const playedTracks = tracks.slice(0, trackIndex);
+  const totalPlayed =
+    msPlayed +
+    playedTracks.reduce((acc: number, curr: any) => acc + curr.duration_ms, 0);
   const rotationDegree =
-    playing && msPlayed > 0 ? minAngle + (msPlayed / duration) * difference : 0;
+    playing && totalPlayed > 0
+      ? minAngle + (totalPlayed / duration) * difference
+      : 0;
   return (
     <>
       <div className={`${styles.recordContainer}`}>

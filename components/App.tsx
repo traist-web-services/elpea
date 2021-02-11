@@ -1,9 +1,10 @@
-import { signIn, signOut } from "next-auth/client";
+import { signIn, signOut, getSession } from "next-auth/client";
 import Image from "next/image";
 
 import NowPlayingPanel from "@components/NowPlayingPanel";
 import CoverFlow from "@components/CoverFlow";
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect } from "react";
+import ArtistSearch from "./ArtistSearch";
 
 interface Album {
   artist: string;
@@ -33,7 +34,6 @@ interface Action {
 }
 
 export default function App({ session }) {
-  const token = session?.user?.accessToken;
   // TODO: Tidy these bad boys up into a single 'nowPlaying' object
   //const [playing, setPlaying] = useState(false);
   const initialNowPlaying: NowPlayingState = {
@@ -57,6 +57,15 @@ export default function App({ session }) {
   const [nowPlaying, setNowPlaying] = useReducer(reducer, initialNowPlaying);
   const [deviceId, setDeviceId] = useState("");
   const [spotifyPlayer, setSpotifyPlayer] = useState(null);
+  const [fetchStatus, setFetched] = useState({
+    limit: 50,
+    offset: 0,
+    total: 1,
+  });
+
+  const [artists, setArtists] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [randomArtists, setRandomArtists] = useState([""]);
 
   function reducer(state: NowPlayingState, action: Action) {
     switch (action.type) {
@@ -97,8 +106,44 @@ export default function App({ session }) {
     }
   }
 
-  const playWithSpotify = (uri: string) => {
+  const playWithSpotify = async (uri: string) => {
     // TODO: Nicen this up with proper loading screen etc.
+    // const currentSession = await getSession();
+
+    const response = await fetch("/api/auth/session");
+    if (!response.ok) {
+      throw new Error();
+    }
+    const currentSession = await response.json();
+    /* , async (url) => {
+      
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error();
+      }
+      return res.json();
+    });
+
+    // For loading
+    if (!error && !data) {
+    }
+
+    // For no session
+    if (!data) {
+    }
+
+    // For session existing
+    if (data) {
+    }
+
+    // Make change on user
+    async function handleSubmit(e: React.SyntheticEvent) {
+      // e.g. update user profile
+
+      // Get the latest session
+      mutate("/api/auth/session");
+    } */
+    const token = currentSession?.user?.accessToken;
     if (!spotifyPlayer) {
       console.error("Player not ready");
       return;
@@ -153,7 +198,13 @@ export default function App({ session }) {
     });
   };
 
-  const pause = () => {
+  const pause = async () => {
+    const response = await fetch("/api/auth/session");
+    if (!response.ok) {
+      throw new Error();
+    }
+    const currentSession = await response.json();
+    const token = currentSession?.user?.accessToken;
     let url = "https://api.spotify.com/v1/me/player/pause";
     if (!nowPlaying.playing) {
       url = "https://api.spotify.com/v1/me/player/play";
@@ -177,7 +228,9 @@ export default function App({ session }) {
     });
   };
 
-  window.onSpotifyWebPlaybackSDKReady = () => {
+  window.onSpotifyWebPlaybackSDKReady = async () => {
+    const currentSession = await getSession();
+    const token = currentSession?.user?.accessToken;
     let interval = null;
     let stop = false;
     let paused = false;
@@ -194,6 +247,7 @@ export default function App({ session }) {
     });
     player.addListener("authentication_error", ({ message }) => {
       console.error(message);
+      debugger;
       signIn("spotify", {
         callbackUrl: process.env.REDIRECT_URI,
         redirect: false,
@@ -256,22 +310,10 @@ export default function App({ session }) {
                 type: "PLAYBACK_RESUMED",
               });
             }
-            const trackIndex = nowPlaying.album.tracks.findIndex(
-              (track: Track) => {
-                return track.id === nowPlaying.track.id;
-              }
-            );
-            const playedTracks = nowPlaying.album.tracks.slice(0, trackIndex);
-            const totalPlayed =
-              state.position +
-              playedTracks.reduce(
-                (acc: number, curr: Track) => acc + curr.duration_ms,
-                0
-              );
 
             setNowPlaying({
               type: "UPDATE_MS_PLAYED",
-              data: totalPlayed,
+              data: state.position,
             });
           });
         }, 1000);
@@ -289,26 +331,102 @@ export default function App({ session }) {
 
   loadSpotifyPlayer();
 
-  return (
-    <>
-      <nav className="w-full flex justify-between relative items-center">
-        <h1 className="text-white text-6xl">
-          Hi {session?.user?.name?.split(" ")[0]}!
-        </h1>
-        <button
-          className="relative rounded-full items-center bg-green-500 text-white px-4 py-2 flex"
-          onClick={() => signOut()}
-        >
-          <div className="relative h-10 w-10 rounded-full overflow-hidden">
-            <Image src={session.user.picture} layout="fill" objectFit="cover" />
-          </div>
-          <span className="ml-2 text-white text-xl">Sign out</span>
-        </button>
-      </nav>
+  useEffect(() => {
+    const fetchTracks = async () => {
+      const response = await fetch("/api/auth/session");
+      if (!response.ok) {
+        throw new Error();
+      }
+      const currentSession = await response.json();
+      const token = currentSession?.user?.accessToken;
+      fetch(
+        `https://api.spotify.com/v1/me/tracks?limit=${fetchStatus.limit}&offset=${fetchStatus.offset}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(response.statusText);
+          }
+        })
+        .then((data) => {
+          const fetchedArtists = artists;
+          data?.items?.forEach(({ track }) => {
+            if (track.album.total_tracks < 2) {
+              return;
+            }
+            const albumObj = {
+              name: track.album.name,
+              spotifyId: track.album.id,
+              previewImage: track.album.images[0].url,
+            };
+            track.artists.forEach((artist) => {
+              if (!fetchedArtists[artist.name]) {
+                fetchedArtists[artist.name] = [albumObj];
+                return;
+              }
+              if (
+                fetchedArtists[artist.name].some(
+                  (el) => el.name === track.album.name
+                )
+              ) {
+                return;
+              }
+              fetchedArtists[artist.name].push(albumObj);
+            });
+            setArtists(fetchedArtists);
+          });
+          if (data.offset + data.limit > data.total) {
+            const getRandomArtist = () =>
+              Object.keys(artists)[
+                Math.floor(Math.random() * Object.keys(artists).length)
+              ];
+            setRandomArtists([getRandomArtist(), getRandomArtist()]);
+            setLoading(false);
+            return;
+          }
+          setFetched({
+            limit: 50,
+            offset: data.offset + data.limit,
+            total: data.total,
+          });
+        })
+        .catch((err) => console.error(err));
+    };
+    fetchTracks();
+  }, [artists, fetchStatus]);
 
-      <CoverFlow session={session} playWithSpotify={playWithSpotify} />
-      <NowPlayingPanel nowPlaying={nowPlaying} pause={pause} />
-    </>
+  return (
+    <div className="flex flex-col flex-grow h-full">
+      <div className="flex items-stretch flex-grow w-full h-full">
+        <div className="w-1/5 h-full">
+          <ArtistSearch
+            artists={artists}
+            loading={loading}
+            randomArtists={randomArtists}
+            playWithSpotify={playWithSpotify}
+          />
+        </div>
+        <div className="flex flex-col w-4/5">
+          <CoverFlow
+            artists={artists}
+            loading={loading}
+            fetchStatus={fetchStatus}
+            playWithSpotify={playWithSpotify}
+          />
+          <div className="flex-grow w-full">
+            <NowPlayingPanel nowPlaying={nowPlaying} pause={pause} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

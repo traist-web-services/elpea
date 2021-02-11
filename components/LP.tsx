@@ -1,34 +1,42 @@
 import { useState } from "react";
+import styles from "@styles/LP.module.scss";
 
 interface LPProps {
   previewImage: string;
   spotifyId: string;
+  name: string;
   playWithSpotify: (uri: string) => void;
 }
 export default function LP({
   previewImage,
   spotifyId,
+  name,
   playWithSpotify,
 }: LPProps) {
   const [showLP, setShowLP] = useState(false);
   return (
-    <li
-      className="group cursor-pointer relative flex-shrink-0 w-48 h-48 mx-4 shadow-lg"
-      onMouseOver={() => setShowLP(true)}
-      onMouseOut={() => setShowLP(false)}
-      onClick={() => playWithSpotify(spotifyId)}
-    >
-      <img
-        src={previewImage}
-        id={spotifyId}
-        loading="lazy"
-        className="max-w-full z-10 relative spotify-album"
-      />
-      <div
-        className={`transition-transform duration-200 transform bg-black absolute top-0 left-0 w-full h-full rounded-full z-0 ${
-          showLP ? "-translate-x-6" : ""
-        }`}
-      ></div>
+    <li onClick={() => playWithSpotify(spotifyId)} className="w-full px-4 mt-2">
+      <div className="relative">
+        <div
+          className={`transition-transform duration-200 transform bg-black absolute top-0 left-0 w-64 h-64 rounded-full z-0 ${
+            showLP ? "-translate-x-6" : ""
+          }`}
+        ></div>
+        <div
+          className={`${styles.lp} relative flex-shrink-0 w-64 h-64 bg-brand-grey-900 shadow-lg cursor-pointer group overflow-hidden`}
+          onMouseOver={() => setShowLP(true)}
+          onMouseOut={() => setShowLP(false)}
+        >
+          <img
+            src={previewImage}
+            id={spotifyId}
+            loading="lazy"
+            className="relative max-w-full spotify-album"
+          />
+        </div>
+      </div>
+
+      <div className="h-12 max-w-full mb-2 overflow-hidden">{name}</div>
     </li>
   );
 }

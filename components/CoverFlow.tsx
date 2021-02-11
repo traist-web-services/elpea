@@ -1,85 +1,80 @@
-import { useState, useEffect } from "react";
-import { signIn } from "next-auth/client";
-import useSWR from "swr";
-
 import LP from "@components/LP";
 import ArtistLabel from "@components/ArtistLabel";
 
 interface CoverFlowProps {
-  session: any;
+  artists: any;
+  loading: boolean;
+  fetchStatus: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
   playWithSpotify: (uri: string) => void;
 }
 export default function CoverFlow({
-  session,
+  artists,
+  loading,
+  fetchStatus,
   playWithSpotify,
 }: CoverFlowProps) {
-  const [mounted, setMounted] = useState(false);
+  const artistList = Object.keys(artists).sort((a, b) =>
+    a.localeCompare(b, "en", { sensitivity: "base" })
+  );
 
-  const fetcher = (url) =>
-    fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + session?.user?.accessToken,
-      },
-    }).then((res) => res.json());
-  const endpoint = "https://api.spotify.com/v1/me/tracks";
-  const { data, error } = useSWR(mounted ? endpoint : null, fetcher);
-
-  if (error) {
-    console.error(error);
-    signIn("spotify", { callbackUrl: process.env.REDIRECT_URI });
+  const scrollIn = (artist) => {
+    console.log("Scroll in", artist);
+    console.log(document.querySelector(`#${toHex(artist)}`));
+    document
+      .querySelector(`#${toHex(artist)}`)
+      .scrollIntoView({ behavior: "smooth", block: "end", inline: "start" });
+  };
+  function toHex(str) {
+    var result = "";
+    for (var i = 0; i < str.length; i++) {
+      result += str.charCodeAt(i).toString(16);
+    }
+    return "a" + result;
   }
 
-  const artists = {};
-  data?.items?.forEach(({ track }) => {
-    if (track.album.total_tracks < 2) {
-      return;
-    }
-    const albumObj = {
-      name: track.album.name,
-      spotifyId: track.album.id,
-      previewImage: track.album.images[0].url,
-    };
-    track.artists.forEach((artist) => {
-      if (!artists[artist.name]) {
-        artists[artist.name] = [albumObj];
-        return;
-      }
-      if (artists[artist.name].some((el) => el.name === track.album.name)) {
-        return;
-      }
-      artists[artist.name].push(albumObj);
-    });
-  });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const artistList = Object.keys(artists).sort();
   return (
     <>
-      <ul className="flex w-full overflow-x-scroll h-56 my-8">
-        {artistList.map((artist) => {
-          return (
-            <li className="flex" key={artist}>
-              <ArtistLabel>{artist}</ArtistLabel>
-              <ul className="flex">
-                {artists[artist].map((album) => {
-                  return (
-                    <LP
-                      previewImage={album.previewImage}
-                      spotifyId={album.spotifyId}
-                      key={album.spotifyId}
-                      playWithSpotify={playWithSpotify}
-                    />
-                  );
-                })}
-              </ul>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="px-2 py-6 mt-6 mb-8 mr-2 rounded h-96">
+        <ul className="flex w-full overflow-x-scroll scrollbar scrollbar-track-transparent scrollbar-thumb-brand-700">
+          {loading && (
+            <div>
+              <h1 className="text-4xl">
+                Loading{" "}
+                {Math.floor(100 * (fetchStatus.offset / fetchStatus.total))} %
+              </h1>
+            </div>
+          )}
+          {!loading &&
+            artistList.map((artist) => {
+              return (
+                <li
+                  className="relative px-1 pt-4 mb-2 mr-2 bg-brand-700 rounded-3xl"
+                  key={artist}
+                  id={toHex(artist)}
+                >
+                  <ArtistLabel>{artist}</ArtistLabel>
+                  <ul className="flex">
+                    {artists[artist].map((album) => {
+                      return (
+                        <LP
+                          previewImage={album.previewImage}
+                          spotifyId={album.spotifyId}
+                          key={album.spotifyId}
+                          playWithSpotify={playWithSpotify}
+                          name={album.name}
+                        />
+                      );
+                    })}
+                  </ul>
+                </li>
+              );
+            })}
+        </ul>
+      </div>
     </>
   );
 }

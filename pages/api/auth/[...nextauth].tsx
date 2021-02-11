@@ -38,6 +38,7 @@ export default NextAuth({
 });
 
 async function refreshAccessToken(token) {
+  console.log("Token expired");
   try {
     const url = `https://accounts.spotify.com/api/token`;
 
@@ -59,10 +60,11 @@ async function refreshAccessToken(token) {
       throw tokens;
     }
 
+    console.log("Token refreshed successfully");
     return {
       ...token,
       accessToken: tokens.access_token,
-      accessTokenExpires: Date.now() + tokens.expires_in * 1000,
+      accessTokenExpires: Date.now() + tokens.expires_in * 1000 - 10,
       refreshToken: tokens.refresh_token,
     };
   } catch (error) {

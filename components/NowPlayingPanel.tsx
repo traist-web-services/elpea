@@ -11,11 +11,11 @@ export default function NowPlayingPanel({
 }: NowPlayingPanelProps) {
   return (
     <>
-      <section className="grid grid-cols-2 gap-4 my-8 items-stretch auto-cols-fr items-start">
-        <div className="">
+      <section className="grid items-start grid-cols-2 gap-4 mt-2 auto-cols-fr">
+        <div className="flex items-center justify-center flex-grow h-full">
           <RecordPlayer nowPlaying={nowPlaying} pause={pause} />
         </div>
-        <div className="">
+        <div className="max-h-full">
           <TrackList nowPlaying={nowPlaying} />
         </div>
       </section>

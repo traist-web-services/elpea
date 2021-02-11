@@ -7,10 +7,15 @@ export default function TrackList({ nowPlaying }) {
   }
   return (
     <>
-      <h2 className="text-white text-3xl mb-4">
+      <h2 className="mb-4 text-4xl">
         {album.name} ({album.artist})
       </h2>
-      <ol className="text-white text-xl list-decimal">
+      <ol
+        className="max-h-full text-xl"
+        style={{
+          columns: "auto 2",
+        }}
+      >
         {album.tracks.map((albumTrack: any, index: number) => {
           return (
             <li className="flex items-center" key={albumTrack.id}>
