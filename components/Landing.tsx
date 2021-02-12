@@ -12,7 +12,11 @@ export default function Landing() {
       </p>
       <button
         className="relative flex items-center px-4 py-2 text-white bg-green-500 rounded-full"
-        onClick={() => signIn()}
+        onClick={() =>
+          signIn("spotify", {
+            callbackUrl: process.env.REDIRECT_URI,
+          })
+        }
       >
         <SpotifyIcon />
         <span className="ml-2 text-xl">Log In With Spotify</span>

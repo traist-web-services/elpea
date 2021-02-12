@@ -44,8 +44,6 @@ async function refreshAccessToken(token) {
 
     const response = await fetch(url, {
       body: new URLSearchParams({
-        // client_id: process.env.SPOTIFY_CLIENT_ID,
-        // client_secret: process.env.SPOTIFY_CLIENT_SECRET,
         grant_type: "refresh_token",
         refresh_token: token.refreshToken,
       }),
