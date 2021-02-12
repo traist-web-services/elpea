@@ -29,9 +29,8 @@ export default function Home() {
           </div>
         </main>
         <footer className="flex flex-col items-end justify-center flex-shrink-0 h-12 px-4 border-t-4 bg-brand-700 border-brand-400">
-          &copy;{" "}
           <a href="https://traist.co.uk" target="_blank">
-            Traist Web Services 2021
+            &copy; Traist Web Services 2021
           </a>
         </footer>
       </div>
