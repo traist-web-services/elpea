@@ -20,7 +20,7 @@ export default function Home() {
         />
       </Head>
 
-      <div className="flex flex-col h-screen bg-brand-grey-900 text-brand-grey-100">
+      <div className="flex flex-col h-screen overflow-hidden bg-brand-grey-900 text-brand-grey-100">
         {session && <NavBar session={session} />}
         <main className="flex-grow h-full overflow-hidden">
           <div className="h-full">
