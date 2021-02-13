@@ -1,6 +1,28 @@
 import NextAuth from "next-auth";
 import Providers from "next-auth/providers";
 
+interface Token {
+  accessToken: string;
+  accessTokenExpires: number;
+  refreshToken: string;
+  product: string;
+}
+
+interface User {}
+interface Profile {
+  product: string;
+}
+
+interface Account {
+  accessToken: string;
+  expires_in: number;
+  refresh_token: string;
+}
+
+interface Session {
+  user: User;
+}
+
 export default NextAuth({
   providers: [
     Providers.Spotify({
@@ -11,7 +33,7 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async jwt(token, user, account, profile, isNewUser) {
+    async jwt(token: Token, user: User, account: Account, profile: Profile) {
       if (account?.accessToken) {
         token.accessToken = account.accessToken;
       }
@@ -24,11 +46,12 @@ export default NextAuth({
       }
 
       if (Date.now() < token.accessTokenExpires) {
+        console.log("Token OK");
         return token;
       }
       return refreshAccessToken(token);
     },
-    async session(session, user) {
+    async session(session: Session, user: User) {
       if (user) {
         session.user = user;
       }
@@ -37,7 +60,7 @@ export default NextAuth({
   },
 });
 
-async function refreshAccessToken(token) {
+async function refreshAccessToken(token: Token) {
   console.log("Token expired");
   try {
     const url = `https://accounts.spotify.com/api/token`;

@@ -6,6 +6,7 @@ import CoverFlow from "@components/CoverFlow";
 import ArtistSearch from "./ArtistSearch";
 import RecordPlayer from "@components/RecordPlayer";
 import EqualizerIcon from "./Icons/EqualizerIcon";
+import ErrorBar from "./ErrorBar";
 
 interface Album {
   artist: string;
@@ -35,8 +36,6 @@ interface Action {
 }
 
 export default function App({ session }) {
-  // TODO: Tidy these bad boys up into a single 'nowPlaying' object
-  //const [playing, setPlaying] = useState(false);
   const initialNowPlaying: NowPlayingState = {
     playing: false,
     msPlayed: 0,
@@ -67,6 +66,10 @@ export default function App({ session }) {
   const [artists, setArtists] = useState({});
   const [loading, setLoading] = useState(true);
   const [randomArtists, setRandomArtists] = useState([""]);
+  const [error, setError] = useState({
+    error: false,
+    message: "",
+  });
 
   function reducer(state: NowPlayingState, action: Action) {
     switch (action.type) {
@@ -113,37 +116,10 @@ export default function App({ session }) {
 
     const response = await fetch("/api/auth/session");
     if (!response.ok) {
-      throw new Error();
+      console.log(response);
+      errorHandler("Could not get session!");
     }
     const currentSession = await response.json();
-    /* , async (url) => {
-      
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error();
-      }
-      return res.json();
-    });
-
-    // For loading
-    if (!error && !data) {
-    }
-
-    // For no session
-    if (!data) {
-    }
-
-    // For session existing
-    if (data) {
-    }
-
-    // Make change on user
-    async function handleSubmit(e: React.SyntheticEvent) {
-      // e.g. update user profile
-
-      // Get the latest session
-      mutate("/api/auth/session");
-    } */
     const token = currentSession?.user?.accessToken;
     if (!spotifyPlayer) {
       console.error("Player not ready");
@@ -196,13 +172,25 @@ export default function App({ session }) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+    }).then((response) => {
+      if (!response.ok) {
+        console.log(response);
+        errorHandler("Could not start playback!");
+      }
     });
+  };
+  const errorHandler = (errorMessage: string) => {
+    setError({
+      error: true,
+      message: errorMessage,
+    });
+    setTimeout(() => setError({ error: false, message: "" }), 5000);
   };
 
   const pause = async () => {
     const response = await fetch("/api/auth/session");
     if (!response.ok) {
-      throw new Error();
+      errorHandler("Could not fetch session");
     }
     const currentSession = await response.json();
     const token = currentSession?.user?.accessToken;
@@ -226,6 +214,11 @@ export default function App({ session }) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+    }).then((response) => {
+      if (!response.ok) {
+        console.log(response);
+        errorHandler("Could not play or pause!");
+      }
     });
   };
 
@@ -338,7 +331,8 @@ export default function App({ session }) {
     const fetchTracks = async () => {
       const response = await fetch("/api/auth/session");
       if (!response.ok) {
-        throw new Error();
+        console.log(response);
+        errorHandler("Could not fetch session!");
       }
       const currentSession = await response.json();
       const token = currentSession?.user?.accessToken;
@@ -356,7 +350,8 @@ export default function App({ session }) {
           if (response.ok) {
             return response.json();
           } else {
-            throw new Error(response.statusText);
+            console.log(response);
+            errorHandler("Could not get album list");
           }
         })
         .then((data) => {
@@ -410,7 +405,7 @@ export default function App({ session }) {
     <>
       {loading && (
         <div className="flex flex-col items-center justify-center w-full h-full">
-          <span class="text-8xl text-brand-500">
+          <span className="text-8xl text-brand-500">
             <EqualizerIcon />
           </span>
         </div>
@@ -447,6 +442,7 @@ export default function App({ session }) {
           </div>
         </div>
       )}
+      {error.error && <ErrorBar errorMessage={error.message} />}
     </>
   );
 }
