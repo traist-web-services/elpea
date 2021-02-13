@@ -6,6 +6,7 @@ interface Token {
   accessTokenExpires: number;
   refreshToken: string;
   product: string;
+  error: string;
 }
 
 interface User {}
@@ -46,7 +47,9 @@ export default NextAuth({
       }
 
       if (Date.now() < token.accessTokenExpires) {
-        console.log("Token OK", token);
+        if (token.error) {
+          delete token.error;
+        }
         return token;
       }
       return refreshAccessToken(token);
@@ -61,7 +64,6 @@ export default NextAuth({
 });
 
 async function refreshAccessToken(token: Token) {
-  console.log("Token expired", token);
   try {
     const url = `https://accounts.spotify.com/api/token`;
 
@@ -69,6 +71,8 @@ async function refreshAccessToken(token: Token) {
       body: new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: token.refreshToken,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET,
       }),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -81,7 +85,9 @@ async function refreshAccessToken(token: Token) {
       throw tokens;
     }
 
-    console.log("Token refreshed successfully");
+    if (token.error) {
+      delete token.error;
+    }
     return {
       ...token,
       accessToken: tokens.access_token,
@@ -89,6 +95,7 @@ async function refreshAccessToken(token: Token) {
       refreshToken: tokens.refresh_token,
     };
   } catch (error) {
+    console.log(error);
     return {
       ...token,
       error: "RefreshAccessTokenError", // This is used in the front-end, and if present, we can force a re-login, or similar

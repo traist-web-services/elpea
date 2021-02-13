@@ -55,7 +55,6 @@ export default function App({ session }) {
     },
   };
   const [nowPlaying, setNowPlaying] = useReducer(reducer, initialNowPlaying);
-  const [deviceId, setDeviceId] = useState("");
   const [spotifyPlayer, setSpotifyPlayer] = useState(null);
   const [fetchStatus, setFetched] = useState({
     limit: 50,
@@ -111,72 +110,70 @@ export default function App({ session }) {
   }
 
   const playWithSpotify = async (uri: string) => {
-    // TODO: Nicen this up with proper loading screen etc.
-    // const currentSession = await getSession();
-
-    const response = await fetch("/api/auth/session");
-    if (!response.ok) {
-      console.log(response);
-      errorHandler("Could not get session!");
-    }
-    const currentSession = await response.json();
-    const token = currentSession?.user?.accessToken;
     if (!spotifyPlayer) {
       console.error("Player not ready");
+      setTimeout(() => playWithSpotify(uri), 5000);
       return;
     }
-    const audio = new Audio("/vinylstart.ogg");
-    audio.play();
+    spotifyPlayer?._options?.getOAuthToken((token: string) => {
+      const audio = new Audio("/vinylstart.ogg");
+      audio.play();
 
-    fetch(`https://api.spotify.com/v1/albums?ids=${uri}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((data) => data.json())
-      .then((data) => {
-        const album = data.albums[0];
-        // TODO: Fix artist type
-        setNowPlaying({
-          type: "SET_PLAYING_ALBUM",
-          data: {
-            artist: album.artists.map((artist: any) => artist.name).join(", "),
-            name: album.name,
-            tracks: album.tracks.items,
-            image: album.images[0].url,
-            duration: album.tracks.items.reduce(
-              (acc: number, curr: Track) => acc + curr.duration_ms,
-              0
-            ),
-          },
-        });
-      });
-
-    // This is a bit odd here... it seems that unless the device is actually playing, then this call will fail. I don't know if this is fixable, but if users choose to enable shuffle manually and defeat the point of this, well then I don't know what we're doing...
-    fetch(
-      `https://api.spotify.com/v1/me/player/shuffle?device_id=${deviceId}&state=false`,
-      {
-        method: "PUT",
+      fetch(`https://api.spotify.com/v1/albums?ids=${uri}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
-    );
-    fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-      method: "PUT",
-      body: JSON.stringify({ context_uri: `spotify:album:${uri}` }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    }).then((response) => {
-      if (!response.ok) {
-        console.log(response);
-        errorHandler("Could not start playback!");
-      }
+      })
+        .then((data) => data.json())
+        .then((data) => {
+          const album = data.albums[0];
+          // TODO: Fix artist type
+          setNowPlaying({
+            type: "SET_PLAYING_ALBUM",
+            data: {
+              artist: album.artists
+                .map((artist: any) => artist.name)
+                .join(", "),
+              name: album.name,
+              tracks: album.tracks.items,
+              image: album.images[0].url,
+              duration: album.tracks.items.reduce(
+                (acc: number, curr: Track) => acc + curr.duration_ms,
+                0
+              ),
+            },
+          });
+        });
+
+      // This is a bit odd here... it seems that unless the device is actually playing, then this call will fail. I don't know if this is fixable, but if users choose to enable shuffle manually and defeat the point of this, well then I don't know what we're doing...
+      fetch(
+        `https://api.spotify.com/v1/me/player/shuffle?device_id=${spotifyPlayer._options.id}&state=false`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetch(
+        `https://api.spotify.com/v1/me/player/play?device_id=${spotifyPlayer._options.id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ context_uri: `spotify:album:${uri}` }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      ).then((response) => {
+        if (!response.ok) {
+          console.log(response);
+          errorHandler("Could not start playback!");
+        }
+      });
     });
   };
   const errorHandler = (errorMessage: string) => {
@@ -188,52 +185,62 @@ export default function App({ session }) {
   };
 
   const pause = async () => {
-    const response = await fetch("/api/auth/session");
-    if (!response.ok) {
-      errorHandler("Could not fetch session");
+    if (!spotifyPlayer) {
+      console.error("Player not ready");
+      setTimeout(() => pause(), 5000);
+      return;
     }
-    const currentSession = await response.json();
-    const token = currentSession?.user?.accessToken;
-    let url = "https://api.spotify.com/v1/me/player/pause";
-    if (!nowPlaying.playing) {
-      url = "https://api.spotify.com/v1/me/player/play";
-      setNowPlaying({
-        type: "PLAYBACK_RESUMED",
-      });
-    } else {
-      setNowPlaying({
-        type: "PLAYBACK_PAUSED",
-      });
-    }
-    fetch(url, {
-      method: "PUT",
-      body: JSON.stringify({
-        device_id: deviceId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    }).then((response) => {
-      if (!response.ok) {
-        console.log(response);
-        errorHandler("Could not play or pause!");
+    spotifyPlayer?._options?.getOAuthToken((token: string) => {
+      let url = "https://api.spotify.com/v1/me/player/pause";
+      if (!nowPlaying.playing) {
+        url = "https://api.spotify.com/v1/me/player/play";
+        setNowPlaying({
+          type: "PLAYBACK_RESUMED",
+        });
+      } else {
+        setNowPlaying({
+          type: "PLAYBACK_PAUSED",
+        });
       }
+      fetch(url, {
+        method: "PUT",
+        body: JSON.stringify({
+          device_id: spotifyPlayer._options.id,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }).then((response) => {
+        if (!response.ok) {
+          console.log(response);
+          errorHandler("Could not play or pause!");
+        }
+      });
     });
   };
 
   // TODO: this is a bit of an ugly type hack
   let myWindow = window as any;
   myWindow.onSpotifyWebPlaybackSDKReady = async () => {
-    const currentSession = await getSession();
-    const token = currentSession?.user?.accessToken;
     let interval = null;
     let stop = false;
     let paused = false;
     const player = new myWindow.Spotify.Player({
       name: process.env.brandName,
       getOAuthToken: (cb: (token: string) => void) => {
-        cb(token);
+        fetch("/api/auth/session")
+          .then((response) => {
+            if (!response.ok) {
+              errorHandler("Could not fetch session");
+              throw "Could not fetch session";
+            }
+            return response.json();
+          })
+          .then((data) => {
+            const token = data?.user?.accessToken;
+            cb(token);
+          });
       },
     });
 
@@ -317,9 +324,7 @@ export default function App({ session }) {
     });
 
     player.addListener("ready", ({ device_id }) => {
-      // console.log("Ready with Device ID", device_id);
       setSpotifyPlayer(player);
-      setDeviceId(device_id);
     });
 
     player.connect();
@@ -328,78 +333,73 @@ export default function App({ session }) {
   loadSpotifyPlayer();
 
   useEffect(() => {
-    const fetchTracks = async () => {
-      const response = await fetch("/api/auth/session");
-      if (!response.ok) {
-        console.log(response);
-        errorHandler("Could not fetch session!");
-      }
-      const currentSession = await response.json();
-      const token = currentSession?.user?.accessToken;
-      fetch(
-        `https://api.spotify.com/v1/me/tracks?limit=${fetchStatus.limit}&offset=${fetchStatus.offset}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            console.log(response);
-            errorHandler("Could not get album list");
+    const fetchTracks = () => {
+      spotifyPlayer?._options?.getOAuthToken((token: string) => {
+        fetch(
+          `https://api.spotify.com/v1/me/tracks?limit=${fetchStatus.limit}&offset=${fetchStatus.offset}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
-        })
-        .then((data) => {
-          const fetchedArtists = artists;
-          data?.items?.forEach(({ track }) => {
-            if (track.album.total_tracks < 2) {
+        )
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              console.log(response);
+              errorHandler("Could not get album list");
+            }
+          })
+          .then((data) => {
+            const fetchedArtists = artists;
+            data?.items?.forEach(({ track }) => {
+              if (track.album.total_tracks < 2) {
+                return;
+              }
+              const albumObj = {
+                name: track.album.name,
+                spotifyId: track.album.id,
+                previewImage: track.album.images[0].url,
+              };
+              track.artists.forEach((artist) => {
+                if (!fetchedArtists[artist.name]) {
+                  fetchedArtists[artist.name] = [albumObj];
+                  return;
+                }
+                if (
+                  fetchedArtists[artist.name].some(
+                    (el) => el.name === track.album.name
+                  )
+                ) {
+                  return;
+                }
+                fetchedArtists[artist.name].push(albumObj);
+              });
+              setArtists(fetchedArtists);
+            });
+            if (data.offset + data.limit > data.total) {
+              const getRandomArtist = () =>
+                Object.keys(artists)[
+                  Math.floor(Math.random() * Object.keys(artists).length)
+                ];
+              setRandomArtists([getRandomArtist(), getRandomArtist()]);
+              setLoading(false);
               return;
             }
-            const albumObj = {
-              name: track.album.name,
-              spotifyId: track.album.id,
-              previewImage: track.album.images[0].url,
-            };
-            track.artists.forEach((artist) => {
-              if (!fetchedArtists[artist.name]) {
-                fetchedArtists[artist.name] = [albumObj];
-                return;
-              }
-              if (
-                fetchedArtists[artist.name].some(
-                  (el) => el.name === track.album.name
-                )
-              ) {
-                return;
-              }
-              fetchedArtists[artist.name].push(albumObj);
+            setFetched({
+              limit: 50,
+              offset: data.offset + data.limit,
+              total: data.total,
             });
-            setArtists(fetchedArtists);
-          });
-          if (data.offset + data.limit > data.total) {
-            const getRandomArtist = () =>
-              Object.keys(artists)[
-                Math.floor(Math.random() * Object.keys(artists).length)
-              ];
-            setRandomArtists([getRandomArtist(), getRandomArtist()]);
-            setLoading(false);
-            return;
-          }
-          setFetched({
-            limit: 50,
-            offset: data.offset + data.limit,
-            total: data.total,
-          });
-        })
-        .catch((err) => console.error(err));
+          })
+          .catch((err) => console.error(err));
+      });
     };
     fetchTracks();
-  }, [artists, fetchStatus]);
+  }, [artists, fetchStatus, spotifyPlayer]);
 
   return (
     <>
