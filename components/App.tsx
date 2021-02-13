@@ -418,7 +418,7 @@ export default function App({ session }) {
                 playWithSpotify={playWithSpotify}
               />
             </div>
-            <div className="flex-shrink-0 px-2 pb-2">
+            <div className="flex-shrink-0 px-2 pb-4">
               <RecordPlayer nowPlaying={nowPlaying} pause={pause} />
             </div>
           </div>

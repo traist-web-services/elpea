@@ -81,7 +81,7 @@ export default function ArtistSearch({
             <li
               onClick={() => scrollIn(artist)}
               key={artist}
-              className="py-1 transition-colors duration-200 cursor-pointer hover:text-brand-grey-50"
+              className="py-1 transition-colors duration-200 cursor-pointer hover:text-brand-grey-50 2xl:text-xl"
             >
               {artist}
             </li>
