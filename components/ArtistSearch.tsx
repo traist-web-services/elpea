@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import SearchIcon from "@components/Icons/SearchIcon";
+
 export default function ArtistSearch({
   artists,
   loading,
@@ -53,35 +55,38 @@ export default function ArtistSearch({
   }
 
   return (
-    <div className="flex flex-col h-full p-4 pt-2">
-      <h2 className="mb-2 text-2xl text-white">Search</h2>
+    <div className="flex flex-col h-full px-4">
+      <h2 className="flex items-center py-5 font-bold 2xl:text-2xl text-brand-grey-50">
+        <span className="h-4 mr-2 2xl:h-8">
+          <SearchIcon />
+        </span>
+        Search
+      </h2>
       <input
         type="text"
-        placeholder={!loading && `eg: ${randomArtists[0]}`}
-        className="px-4 py-2 rounded-full outline-none bg-brand-200 text-brand-grey-900"
+        placeholder={loading ? "" : `eg: ${randomArtists[0]}`}
+        className="px-4 py-1 rounded-full outline-none bg-brand-grey-50 text-brand-grey-900"
         onChange={(e) => setFilter(e.target.value.toLowerCase())}
       />
       <button
-        className="px-4 py-2 my-4 rounded-full bg-brand-700 hover:bg-brand-500"
+        className="px-4 py-1 my-4 text-sm font-bold tracking-widest uppercase transition-colors duration-200 rounded-full bg-brand-700 hover:bg-brand-500 text-brand-grey-50"
         onClick={() => playWithSpotify(spotifyId)}
       >
         Random
       </button>
-      <div className="p-4 bg-brand-700 rounded-3xl">
-        <ul className="flex-grow overflow-scroll scrollbar scrollbar-track-transparent scrollbar-thumb-brand-700 bg-brand-700">
-          {loading && <li className="h-full">Loading...</li>}
-          {!loading &&
-            filteredArtistList.map((artist) => (
-              <li
-                onClick={() => scrollIn(artist)}
-                key={artist}
-                className="py-1 cursor-pointer"
-              >
-                {artist}
-              </li>
-            ))}
-        </ul>
-      </div>
+      <ul className="flex-grow h-full overflow-scroll scrollbar scrollbar-track-transparent scrollbar-thumb-brand-700">
+        {loading && <li className="h-full">Loading...</li>}
+        {!loading &&
+          filteredArtistList.map((artist) => (
+            <li
+              onClick={() => scrollIn(artist)}
+              key={artist}
+              className="py-1 transition-colors duration-200 cursor-pointer hover:text-brand-grey-50"
+            >
+              {artist}
+            </li>
+          ))}
+      </ul>
     </div>
   );
 }

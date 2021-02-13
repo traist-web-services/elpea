@@ -7,36 +7,41 @@ export default function TrackList({ nowPlaying }) {
   }
   return (
     <>
-      <h2 className="mb-4 text-4xl">
+      <h2 className="my-2 text-2xl font-bold text-brand-grey-50">
         {album.name} ({album.artist})
       </h2>
-      <ol
-        className="max-h-full text-xl"
-        style={{
-          columns: "auto 2",
-        }}
-      >
-        {album.tracks.map((albumTrack: any, index: number) => {
-          return (
-            <li className="flex items-center" key={albumTrack.id}>
-              {albumTrack.name === track?.name && playing && !paused ? (
-                <span className="mr-2 -ml-6">
-                  <EqualizerIcon />
-                </span>
-              ) : (
-                ""
-              )}{" "}
-              {index + 1}. {albumTrack.name} -{" "}
-              {Math.floor(albumTrack.duration_ms / 60000)}:
-              {("" + (Math.floor(albumTrack.duration_ms / 1000) % 60))
-                .length === 2
-                ? Math.floor(albumTrack.duration_ms / 1000) % 60
-                : "0" + (Math.floor(albumTrack.duration_ms / 1000) % 60)}
-              s
-            </li>
-          );
-        })}
-      </ol>
+      <div className="flex-grow h-0">
+        <ol className="flex flex-col flex-wrap w-full h-full ml-4 list-decimal">
+          {album.tracks.map((albumTrack: any, index: number) => {
+            return (
+              <li
+                key={albumTrack.id}
+                className=""
+                style={{
+                  display: "inline-list-item",
+                }}
+              >
+                <div className="relative flex items-center">
+                  {albumTrack.name} -{" "}
+                  {Math.floor(albumTrack.duration_ms / 60000)}:
+                  {("" + (Math.floor(albumTrack.duration_ms / 1000) % 60))
+                    .length === 2
+                    ? Math.floor(albumTrack.duration_ms / 1000) % 60
+                    : "0" + (Math.floor(albumTrack.duration_ms / 1000) % 60)}
+                  s
+                  {albumTrack.name === track?.name && playing && !paused ? (
+                    <span className="absolute top-0 ml-2 -left-14">
+                      <EqualizerIcon />
+                    </span>
+                  ) : (
+                    ""
+                  )}{" "}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
     </>
   );
 }

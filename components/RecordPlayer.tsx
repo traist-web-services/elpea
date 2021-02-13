@@ -5,8 +5,8 @@ interface RecordPlayerProps {
   pause: () => void;
 }
 export default function RecordPlayer({ nowPlaying, pause }: RecordPlayerProps) {
-  const minAngle = 14;
-  const maxAngle = 35;
+  const minAngle = 14; // Note, technically 12.5
+  const maxAngle = 36; // Technically 37.5
   const difference = maxAngle - minAngle;
   const {
     playing,
@@ -24,7 +24,7 @@ export default function RecordPlayer({ nowPlaying, pause }: RecordPlayerProps) {
     playedTracks.reduce((acc: number, curr: any) => acc + curr.duration_ms, 0);
   const rotationDegree =
     playing && totalPlayed > 0
-      ? minAngle + (totalPlayed / duration) * difference
+      ? minAngle + Math.min(totalPlayed / duration, 1) * difference
       : 0;
   return (
     <>
@@ -51,22 +51,6 @@ export default function RecordPlayer({ nowPlaying, pause }: RecordPlayerProps) {
               <div className={styles.needle}></div>
             </div>
           </div>
-        </div>
-        <div
-          className={styles.pauseButton}
-          onClick={() => (playing ? pause() : "")}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
         </div>
       </div>
     </>

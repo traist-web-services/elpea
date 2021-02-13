@@ -38,7 +38,10 @@ export default function CoverFlow({
 
   return (
     <>
-      <div className="px-2 py-6 mt-6 mb-8 mr-2 rounded h-96">
+      <div className="pl-4 rounded">
+        <h1 className="py-2 pb-4 text-3xl font-bold text-brand-grey-50">
+          Your Album Collection
+        </h1>
         <ul className="flex w-full overflow-x-scroll scrollbar scrollbar-track-transparent scrollbar-thumb-brand-700">
           {loading && (
             <div>
@@ -52,7 +55,7 @@ export default function CoverFlow({
             artistList.map((artist) => {
               return (
                 <li
-                  className="relative px-1 pt-4 mb-2 mr-2 bg-brand-700 rounded-3xl"
+                  className="relative px-2 pt-2 mb-1 mr-2 rounded-xl bg-brand-grey-700"
                   key={artist}
                   id={toHex(artist)}
                 >

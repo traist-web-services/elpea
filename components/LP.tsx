@@ -15,15 +15,15 @@ export default function LP({
 }: LPProps) {
   const [showLP, setShowLP] = useState(false);
   return (
-    <li onClick={() => playWithSpotify(spotifyId)} className="w-full px-4 mt-2">
+    <li onClick={() => playWithSpotify(spotifyId)} className="w-full px-3 mt-2">
       <div className="relative">
         <div
-          className={`transition-transform duration-200 transform bg-black absolute top-0 left-0 w-64 h-64 rounded-full z-0 ${
-            showLP ? "-translate-x-6" : ""
+          className={`transition-transform duration-200 transform bg-black absolute top-0 left-0 w-32 h-32 rounded-full z-0 ${
+            showLP ? "-translate-x-4" : ""
           }`}
         ></div>
         <div
-          className={`${styles.lp} relative flex-shrink-0 w-64 h-64 bg-brand-grey-900 shadow-lg cursor-pointer group overflow-hidden`}
+          className={`${styles.lp} relative flex-shrink-0 w-32 h-32 bg-brand-grey-900 shadow-lg cursor-pointer group overflow-hidden`}
           onMouseOver={() => setShowLP(true)}
           onMouseOut={() => setShowLP(false)}
         >
@@ -31,12 +31,22 @@ export default function LP({
             src={previewImage}
             id={spotifyId}
             loading="lazy"
-            className="relative max-w-full spotify-album"
+            className="relative max-w-full rounded spotify-album"
           />
         </div>
       </div>
 
-      <div className="h-12 max-w-full mb-2 overflow-hidden">{name}</div>
+      <div
+        className="h-10 max-w-full my-2 overflow-hidden text-sm"
+        style={{
+          display: "-webkit-box",
+          WebkitBoxOrient: "vertical",
+          lineClamp: 2,
+          WebkitLineClamp: 2,
+        }}
+      >
+        {name}
+      </div>
     </li>
   );
 }

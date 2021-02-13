@@ -1,10 +1,10 @@
-import { signIn, signOut, getSession } from "next-auth/client";
-import Image from "next/image";
+import { useState, useReducer, useEffect } from "react";
+import { signIn, getSession } from "next-auth/client";
 
 import NowPlayingPanel from "@components/NowPlayingPanel";
 import CoverFlow from "@components/CoverFlow";
-import { useState, useReducer, useEffect } from "react";
 import ArtistSearch from "./ArtistSearch";
+import RecordPlayer from "@components/RecordPlayer";
 
 interface Album {
   artist: string;
@@ -409,21 +409,28 @@ export default function App({ session }) {
     <div className="flex flex-col flex-grow h-full">
       <div className="flex items-stretch flex-grow w-full h-full">
         <div className="w-1/5 h-full">
-          <ArtistSearch
-            artists={artists}
-            loading={loading}
-            randomArtists={randomArtists}
-            playWithSpotify={playWithSpotify}
-          />
+          <div className="flex flex-col h-full">
+            <div className="max-h-full overflow-hidden">
+              <ArtistSearch
+                artists={artists}
+                loading={loading}
+                randomArtists={randomArtists}
+                playWithSpotify={playWithSpotify}
+              />
+            </div>
+            <div className="flex-shrink-0 px-2 pb-2">
+              <RecordPlayer nowPlaying={nowPlaying} pause={pause} />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col w-4/5">
+        <div className="flex flex-col w-4/5 h-full bg-brand-grey-800">
           <CoverFlow
             artists={artists}
             loading={loading}
             fetchStatus={fetchStatus}
             playWithSpotify={playWithSpotify}
           />
-          <div className="flex-grow w-full">
+          <div className="flex-grow w-full h-full">
             <NowPlayingPanel nowPlaying={nowPlaying} pause={pause} />
           </div>
         </div>

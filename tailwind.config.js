@@ -81,7 +81,7 @@ module.exports = {
       },
     },
     fontFamily: {
-      sans: ["'Rubik'", ...defaultTheme.fontFamily.sans],
+      sans: ["Inter", ...defaultTheme.fontFamily.sans],
       serif: [...defaultTheme.fontFamily.serif],
       mono: [...defaultTheme.fontFamily.mono],
     },
