@@ -10,7 +10,10 @@
       ],
       "@hooks/*": [
         "hooks/*"
-      ]
+      ],
+      "@contexts/*": [
+        "contexts/*"
+      ],
     },
     "target": "es5",
     "lib": [

@@ -1,4 +1,4 @@
-import { useState, useReducer, useEffect } from "react";
+import { useState, useReducer, useEffect, useContext } from "react";
 import { signIn, getSession } from "next-auth/client";
 
 import NowPlayingPanel from "@components/NowPlayingPanel";
@@ -7,6 +7,7 @@ import ArtistSearch from "./ArtistSearch";
 import RecordPlayer from "@components/RecordPlayer";
 import EqualizerIcon from "./Icons/EqualizerIcon";
 import ErrorBar from "./ErrorBar";
+import { DispatchContext, StateContext } from "@contexts/AppContext";
 
 interface Album {
   artist: string;
@@ -36,78 +37,17 @@ interface Action {
 }
 
 export default function App({ session }) {
-  const initialNowPlaying: NowPlayingState = {
-    playing: false,
-    msPlayed: 0,
-    paused: false,
-
-    album: {
-      artist: "",
-      name: "",
-      tracks: [],
-      duration: 0,
-      image: "",
-    },
-    track: {
-      name: "",
-      id: "",
-      duration_ms: 0,
-    },
-  };
-  const [nowPlaying, setNowPlaying] = useReducer(reducer, initialNowPlaying);
-  const [spotifyPlayer, setSpotifyPlayer] = useState(null);
-  const [fetchStatus, setFetched] = useState({
-    limit: 50,
-    offset: 0,
-    total: 1,
-  });
-
-  const [artists, setArtists] = useState({});
   const [loading, setLoading] = useState(true);
   const [randomArtists, setRandomArtists] = useState([""]);
-  const [error, setError] = useState({
-    error: false,
-    message: "",
-  });
 
-  function reducer(state: NowPlayingState, action: Action) {
-    switch (action.type) {
-      case "SET_PLAYING_ALBUM":
-        return {
-          ...state,
-          playing: true,
-          album: action.data,
-        };
-      case "SET_PLAYING_TRACK":
-        return {
-          ...state,
-          track: action.data,
-        };
-      case "UPDATE_MS_PLAYED":
-        return {
-          ...state,
-          msPlayed: action.data,
-          playing: action.data !== state.msPlayed,
-          paused: action.data === state.msPlayed,
-        };
-      case "PLAYBACK_PAUSED":
-        return {
-          ...state,
-          paused: true,
-          playing: false,
-        };
-      case "PLAYBACK_RESUMED":
-        return {
-          ...state,
-          playing: true,
-          paused: false,
-        };
-      case "PLAYBACK_STOPPED":
-        return initialNowPlaying;
-      default:
-        console.error("You dispatched an invalid action type");
-    }
-  }
+  const {
+    nowPlaying,
+    spotifyPlayer,
+    fetchStatus,
+    artistsAndAlbums,
+    errors: { error, errorMessage, initError },
+  } = useContext(StateContext);
+  const dispatch = useContext(DispatchContext);
 
   const playWithSpotify = async (uri: string) => {
     if (!spotifyPlayer) {
@@ -130,9 +70,9 @@ export default function App({ session }) {
         .then((data) => {
           const album = data.albums[0];
           // TODO: Fix artist type
-          setNowPlaying({
+          dispatch({
             type: "SET_PLAYING_ALBUM",
-            data: {
+            payload: {
               artist: album.artists
                 .map((artist: any) => artist.name)
                 .join(", "),
@@ -177,11 +117,14 @@ export default function App({ session }) {
     });
   };
   const errorHandler = (errorMessage: string) => {
-    setError({
-      error: true,
-      message: errorMessage,
+    dispatch({
+      type: "SET_ERROR",
+      payload: {
+        error: true,
+        message: errorMessage,
+      },
     });
-    setTimeout(() => setError({ error: false, message: "" }), 5000);
+    setTimeout(() => dispatch({ type: "CLEAR_ERROR" }), 5000);
   };
 
   const pause = async () => {
@@ -194,11 +137,11 @@ export default function App({ session }) {
       let url = "https://api.spotify.com/v1/me/player/pause";
       if (!nowPlaying.playing) {
         url = "https://api.spotify.com/v1/me/player/play";
-        setNowPlaying({
+        dispatch({
           type: "PLAYBACK_RESUMED",
         });
       } else {
-        setNowPlaying({
+        dispatch({
           type: "PLAYBACK_PAUSED",
         });
       }
@@ -246,11 +189,17 @@ export default function App({ session }) {
 
     // Error handling
     player.addListener("initialization_error", ({ message }) => {
-      console.error(message);
+      dispatch({
+        type: "SET_ERROR",
+        payload: {
+          errors: {
+            initError: true,
+          },
+        },
+      });
+      dispatch({ type: "SET_PLAYER", payload: player });
     });
     player.addListener("authentication_error", ({ message }) => {
-      console.error(message);
-      debugger;
       signIn("spotify", {
         callbackUrl: process.env.REDIRECT_URI,
         redirect: false,
@@ -271,7 +220,7 @@ export default function App({ session }) {
           return;
         }
 
-        setNowPlaying({
+        dispatch({
           type: "PLAYBACK_STOPPED",
         });
 
@@ -284,9 +233,9 @@ export default function App({ session }) {
       const currentTrack = state?.track_window?.current_track;
 
       if (currentTrack) {
-        setNowPlaying({
+        dispatch({
           type: "SET_PLAYING_TRACK",
-          data: currentTrack,
+          payload: currentTrack,
         });
       }
 
@@ -295,7 +244,7 @@ export default function App({ session }) {
       }
 
       if (state.paused) {
-        setNowPlaying({
+        dispatch({
           type: "PLAYBACK_PAUSED",
         });
         if (interval) {
@@ -309,12 +258,12 @@ export default function App({ session }) {
           player.getCurrentState().then((state: any) => {
             if (paused === true) {
               paused = false;
-              setNowPlaying({
+              dispatch({
                 type: "PLAYBACK_RESUMED",
               });
             }
 
-            setNowPlaying({
+            dispatch({
               type: "UPDATE_MS_PLAYED",
               data: state.position,
             });
@@ -324,7 +273,7 @@ export default function App({ session }) {
     });
 
     player.addListener("ready", ({ device_id }) => {
-      setSpotifyPlayer(player);
+      dispatch({ type: "SET_PLAYER", payload: player });
     });
 
     player.connect();
@@ -332,75 +281,117 @@ export default function App({ session }) {
 
   loadSpotifyPlayer();
 
-  useEffect(() => {
-    const fetchTracks = () => {
-      spotifyPlayer?._options?.getOAuthToken((token: string) => {
-        fetch(
-          `https://api.spotify.com/v1/me/tracks?limit=${fetchStatus.limit}&offset=${fetchStatus.offset}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+  const fetchTracks = (offset, limit) => {
+    spotifyPlayer?._options?.getOAuthToken((token: string) => {
+      fetch(
+        `https://api.spotify.com/v1/me/tracks?limit=${limit}&offset=${offset}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            console.log(response);
+            errorHandler("Could not get album list");
           }
-        )
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            } else {
-              console.log(response);
-              errorHandler("Could not get album list");
-            }
-          })
-          .then((data) => {
-            const fetchedArtists = artists;
-            data?.items?.forEach(({ track }) => {
-              if (track.album.total_tracks < 2) {
-                return;
-              }
-              const albumObj = {
-                name: track.album.name,
-                spotifyId: track.album.id,
-                previewImage: track.album.images[0].url,
-              };
-              track.artists.forEach((artist) => {
-                if (!fetchedArtists[artist.name]) {
-                  fetchedArtists[artist.name] = [albumObj];
-                  return;
-                }
-                if (
-                  fetchedArtists[artist.name].some(
-                    (el) => el.name === track.album.name
-                  )
-                ) {
-                  return;
-                }
-                fetchedArtists[artist.name].push(albumObj);
-              });
-              setArtists(fetchedArtists);
-            });
-            if (data.offset + data.limit > data.total) {
-              const getRandomArtist = () =>
-                Object.keys(artists)[
-                  Math.floor(Math.random() * Object.keys(artists).length)
-                ];
-              setRandomArtists([getRandomArtist(), getRandomArtist()]);
-              setLoading(false);
+        })
+        .then((data) => {
+          const fetchedArtists = artistsAndAlbums;
+          data?.items?.forEach(({ track }) => {
+            if (track.album.total_tracks < 2) {
               return;
             }
-            setFetched({
+            const albumObj = {
+              name: track.album.name,
+              spotifyId: track.album.id,
+              previewImage: track.album.images[0].url,
+            };
+            track.artists.forEach((artist) => {
+              if (!fetchedArtists[artist.name]) {
+                fetchedArtists[artist.name] = [albumObj];
+                return;
+              }
+              if (
+                fetchedArtists[artist.name].some(
+                  (el) => el.name === track.album.name
+                )
+              ) {
+                return;
+              }
+              fetchedArtists[artist.name].push(albumObj);
+            });
+            dispatch({ type: "SET_ARTISTS", payload: fetchedArtists });
+          });
+          if (data.offset + data.limit > data.total) {
+            const getRandomArtist = () =>
+              Object.keys(artistsAndAlbums)[
+                Math.floor(Math.random() * Object.keys(artistsAndAlbums).length)
+              ];
+            setRandomArtists([getRandomArtist(), getRandomArtist()]);
+            setLoading(false);
+            return;
+          }
+          dispatch({
+            type: "UPDATE_FETCHED",
+            payload: {
               limit: 50,
               offset: data.offset + data.limit,
               total: data.total,
-            });
-          })
-          .catch((err) => console.error(err));
-      });
-    };
-    fetchTracks();
-  }, [artists, fetchStatus, spotifyPlayer]);
+            },
+          });
+          //fetchTracks();
+        })
+        .catch((err) => console.error(err));
+    });
+  };
+  const fetchDevices = () => {
+    spotifyPlayer?._options?.getOAuthToken((token: string) => {
+      fetch(`https://api.spotify.com/v1/me/player/devices`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            console.log(response);
+            errorHandler("Could not get device list");
+          }
+        })
+        .then((data) => {
+          dispatch({ type: "SET_DEVICES", payload: data });
+        })
+        .catch((err) => console.error(err));
+    });
+  };
+  useEffect(() => {
+    const { offset, limit } = fetchStatus;
+    fetchTracks(offset, limit);
+  }, [spotifyPlayer, fetchStatus]);
 
+  useEffect(() => {
+    fetchDevices();
+  }, [spotifyPlayer]);
+
+  if (initError) {
+    return (
+      <div className="grid h-full place-items-center">
+        <h1 className="text-3xl font-bold text-brand-grey-50">
+          Couldn't initialise - probably your browser does not support{" "}
+          {process.env.brandName} yet :(
+        </h1>
+      </div>
+    );
+  }
   return (
     <>
       {loading && (
@@ -417,7 +408,7 @@ export default function App({ session }) {
               <div className="flex flex-col h-full">
                 <div className="max-h-full overflow-hidden">
                   <ArtistSearch
-                    artists={artists}
+                    artists={artistsAndAlbums}
                     loading={loading}
                     randomArtists={randomArtists}
                     playWithSpotify={playWithSpotify}
@@ -430,7 +421,7 @@ export default function App({ session }) {
             </div>
             <div className="flex flex-col w-4/5 h-full bg-brand-grey-800">
               <CoverFlow
-                artists={artists}
+                artists={artistsAndAlbums}
                 loading={loading}
                 fetchStatus={fetchStatus}
                 playWithSpotify={playWithSpotify}
@@ -442,7 +433,7 @@ export default function App({ session }) {
           </div>
         </div>
       )}
-      {error.error && <ErrorBar errorMessage={error.message} />}
+      {error && <ErrorBar errorMessage={errorMessage} />}
     </>
   );
 }
