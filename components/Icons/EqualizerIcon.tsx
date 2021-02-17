@@ -1,6 +1,7 @@
+import { memo } from "react";
 import styles from "@styles/EqualizerIcon.module.scss";
 
-export default function EqualizerIcon() {
+function EqualizerIcon() {
   return (
     <svg
       width="1em"
@@ -37,3 +38,5 @@ export default function EqualizerIcon() {
     </svg>
   );
 }
+
+export default memo(EqualizerIcon);

@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { signOut } from "next-auth/client";
+import { memo } from "react";
 
-export default function NavBar({ session }) {
+function NavBar({ session }) {
   return (
     <nav className="relative flex items-center justify-between w-full px-4 py-2 border-b-2 2xl:py-4 bg-brand-900 border-brand-400">
       <h1 className="text-2xl font-bold 2xl:text-5xl text-brand-grey-50">
@@ -21,3 +22,5 @@ export default function NavBar({ session }) {
     </nav>
   );
 }
+
+export default memo(NavBar);

@@ -1,21 +1,33 @@
-import { useState } from "react";
+import { memo, useContext, useState } from "react";
 import styles from "@styles/LP.module.scss";
+
+import useSpotify from "@hooks/useSpotify";
+import { DispatchContext } from "@contexts/AppContext";
 
 interface LPProps {
   previewImage: string;
   spotifyId: string;
   name: string;
-  playWithSpotify: (uri: string) => void;
+  spotifyPlayer: any;
 }
-export default function LP({
-  previewImage,
-  spotifyId,
-  name,
-  playWithSpotify,
-}: LPProps) {
+
+function LP({ previewImage, spotifyId, name, spotifyPlayer }: LPProps) {
   const [showLP, setShowLP] = useState(false);
+  const dispatch = useContext(DispatchContext);
+  const { play } = useSpotify;
+  const handleClick = async () => {
+    const { error, data } = await play({
+      uri: spotifyId,
+      player: spotifyPlayer,
+    });
+    if (error) {
+      dispatch({ type: "SET_ERROR", payload: error });
+      return;
+    }
+    dispatch({ type: "SET_PLAYING_ALBUM", payload: data });
+  };
   return (
-    <li onClick={() => playWithSpotify(spotifyId)} className="w-full px-3 mt-2">
+    <li onClick={handleClick} className="w-full px-3 mt-2">
       <div className="relative">
         <div
           className={`transition-transform duration-200 transform bg-black absolute top-0 left-0 w-32 h-32 rounded-full z-0 ${
@@ -50,3 +62,5 @@ export default function LP({
     </li>
   );
 }
+
+export default memo(LP);

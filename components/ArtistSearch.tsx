@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useContext, memo, useMemo } from "react";
 
 import SearchIcon from "@components/Icons/SearchIcon";
 
-export default function ArtistSearch({
-  artists,
-  loading,
-  randomArtists,
-  playWithSpotify,
-}) {
+import { DispatchContext, StateContext } from "@contexts/AppContext";
+import useSpotify from "@hooks/useSpotify";
+
+function ArtistSearch() {
   const [filter, setFilter] = useState("");
+  const { artistsAndAlbums, loading, spotifyPlayer } = useContext(StateContext);
+  const dispatch = useContext(DispatchContext);
+  const { play } = useSpotify;
+
   const scrollIn = (artist: string) => {
     document
       .querySelector(`#${toHex(artist)}`)
@@ -23,7 +25,7 @@ export default function ArtistSearch({
     return "a" + result;
   }
 
-  const artistList = Object.keys(artists).sort((a, b) =>
+  const artistList = Object.keys(artistsAndAlbums).sort((a, b) =>
     a.localeCompare(b, "en", { sensitivity: "base" })
   );
 
@@ -39,20 +41,38 @@ export default function ArtistSearch({
   });
 
   let spotifyId = "";
-  if (artists) {
-    const artistList = Object.keys(artists);
+  const getRandomArtist = useMemo(() => {
+    return Object.keys(artistsAndAlbums)[
+      Math.floor(Math.random() * Object.keys(artistsAndAlbums).length)
+    ];
+  }, []);
+
+  if (artistsAndAlbums) {
+    const artistList = Object.keys(artistsAndAlbums);
     const randomArtist =
       artistList[Math.ceil(artistList.length * Math.random())];
     if (randomArtist) {
       const randomAlbum =
-        artists[randomArtist][
-          Math.floor(artists[randomArtist].length * Math.random())
+        artistsAndAlbums[randomArtist][
+          Math.floor(artistsAndAlbums[randomArtist].length * Math.random())
         ];
       if (randomAlbum) {
         spotifyId = randomAlbum.spotifyId;
       }
     }
   }
+
+  const playRandom = async () => {
+    const { error, data } = await play({
+      uri: spotifyId,
+      player: spotifyPlayer,
+    });
+    if (error) {
+      dispatch({ type: "SET_ERROR", payload: error });
+      return;
+    }
+    dispatch({ type: "SET_PLAYING_ALBUM", payload: data });
+  };
 
   return (
     <div className="flex flex-col h-full px-4">
@@ -64,13 +84,13 @@ export default function ArtistSearch({
       </h2>
       <input
         type="text"
-        placeholder={loading ? "" : `eg: ${randomArtists[0]}`}
+        placeholder={loading ? "" : `eg: ${getRandomArtist}`}
         className="px-4 py-1 rounded-full outline-none bg-brand-grey-50 text-brand-grey-900"
         onChange={(e) => setFilter(e.target.value.toLowerCase())}
       />
       <button
         className="px-4 py-1 my-4 text-sm font-bold tracking-widest uppercase transition-colors duration-200 rounded-full bg-brand-700 hover:bg-brand-500 text-brand-grey-50"
-        onClick={() => playWithSpotify(spotifyId)}
+        onClick={playRandom}
       >
         Random
       </button>
@@ -90,3 +110,5 @@ export default function ArtistSearch({
     </div>
   );
 }
+
+export default memo(ArtistSearch);

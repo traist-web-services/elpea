@@ -1,4 +1,4 @@
-import { useReducer, useContext } from "react";
+import { useReducer, memo } from "react";
 
 import Head from "next/head";
 import { useSession } from "next-auth/client";
@@ -8,10 +8,10 @@ import Landing from "@components/Landing";
 import NoPremium from "@components/NoPremium";
 import App from "@components/App";
 
+import useSpotify from "@hooks/useSpotify";
 import { StateContext, DispatchContext } from "@contexts/AppContext";
 
 function reducer(state, action) {
-  console.log(action.type);
   switch (action.type) {
     case "SET_DEVICES": {
       return {
@@ -32,8 +32,8 @@ function reducer(state, action) {
     case "SET_ERROR": {
       return {
         ...state,
-        error: {
-          ...state.error,
+        errors: {
+          ...state.errors,
           ...action.payload,
         },
       };
@@ -122,6 +122,12 @@ function reducer(state, action) {
         },
       };
     }
+    case "SET_LOADING": {
+      return {
+        ...state,
+        loading: action.payload,
+      };
+    }
     default:
       throw new Error("You dispatched an invalid action type");
   }
@@ -163,12 +169,12 @@ const initialState = {
     total: 1,
   },
   artistsAndAlbums: {},
+  loading: true,
 };
 
-export default function Home() {
+function Home() {
   const [session, loading] = useSession();
   const [state, dispatch] = useReducer(reducer, initialState);
-
   return (
     <>
       <Head>
@@ -207,3 +213,5 @@ export default function Home() {
     </>
   );
 }
+
+export default memo(Home);

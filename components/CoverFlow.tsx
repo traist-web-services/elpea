@@ -1,23 +1,16 @@
 import LP from "@components/LP";
 import ArtistLabel from "@components/ArtistLabel";
+import { useContext, memo } from "react";
+import { StateContext } from "@contexts/AppContext";
 
-interface CoverFlowProps {
-  artists: any;
-  loading: boolean;
-  fetchStatus: {
-    limit: number;
-    offset: number;
-    total: number;
-  };
-  playWithSpotify: (uri: string) => void;
-}
-export default function CoverFlow({
-  artists,
-  loading,
-  fetchStatus,
-  playWithSpotify,
-}: CoverFlowProps) {
-  const artistList = Object.keys(artists).sort((a, b) =>
+import useSpotify from "@hooks/useSpotify";
+
+function CoverFlow() {
+  const { artistsAndAlbums, loading, fetchStatus, spotifyPlayer } = useContext(
+    StateContext
+  );
+  const { play } = useSpotify;
+  const artistList = Object.keys(artistsAndAlbums).sort((a, b) =>
     a.localeCompare(b, "en", { sensitivity: "base" })
   );
 
@@ -61,13 +54,13 @@ export default function CoverFlow({
                 >
                   <ArtistLabel>{artist}</ArtistLabel>
                   <ul className="flex">
-                    {artists[artist].map((album) => {
+                    {artistsAndAlbums[artist].map((album) => {
                       return (
                         <LP
                           previewImage={album.previewImage}
                           spotifyId={album.spotifyId}
                           key={album.spotifyId}
-                          playWithSpotify={playWithSpotify}
+                          spotifyPlayer={spotifyPlayer}
                           name={album.name}
                         />
                       );
@@ -81,3 +74,5 @@ export default function CoverFlow({
     </>
   );
 }
+
+export default memo(CoverFlow);

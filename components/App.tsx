@@ -1,5 +1,5 @@
-import { useState, useReducer, useEffect, useContext } from "react";
-import { signIn, getSession } from "next-auth/client";
+import { memo, useCallback, useEffect, useContext } from "react";
+import { signIn } from "next-auth/client";
 
 import NowPlayingPanel from "@components/NowPlayingPanel";
 import CoverFlow from "@components/CoverFlow";
@@ -36,86 +36,90 @@ interface Action {
   data?: any;
 }
 
-export default function App({ session }) {
-  const [loading, setLoading] = useState(true);
-  const [randomArtists, setRandomArtists] = useState([""]);
-
+function App() {
   const {
-    nowPlaying,
     spotifyPlayer,
     fetchStatus,
     artistsAndAlbums,
+    loading,
     errors: { error, errorMessage, initError },
   } = useContext(StateContext);
+
   const dispatch = useContext(DispatchContext);
 
-  const playWithSpotify = async (uri: string) => {
-    if (!spotifyPlayer) {
-      console.error("Player not ready");
-      setTimeout(() => playWithSpotify(uri), 5000);
-      return;
-    }
-    spotifyPlayer?._options?.getOAuthToken((token: string) => {
-      const audio = new Audio("/vinylstart.ogg");
-      audio.play();
+  const playWithSpotify = useCallback(
+    async (uri: string) => {
+      if (!spotifyPlayer) {
+        console.error("Player not ready");
+        setTimeout(() => playWithSpotify(uri), 5000);
+        return;
+      }
+      spotifyPlayer?._options?.getOAuthToken((token: string) => {
+        const audio = new Audio("/vinylstart.ogg");
+        audio.play();
 
-      fetch(`https://api.spotify.com/v1/albums?ids=${uri}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((data) => data.json())
-        .then((data) => {
-          const album = data.albums[0];
-          // TODO: Fix artist type
-          dispatch({
-            type: "SET_PLAYING_ALBUM",
-            payload: {
-              artist: album.artists
-                .map((artist: any) => artist.name)
-                .join(", "),
-              name: album.name,
-              tracks: album.tracks.items,
-              image: album.images[0].url,
-              duration: album.tracks.items.reduce(
-                (acc: number, curr: Track) => acc + curr.duration_ms,
-                0
-              ),
-            },
+        fetch(`https://api.spotify.com/v1/albums?ids=${uri}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((data) => data.json())
+          .then((data) => {
+            const album = data.albums[0];
+            // TODO: Fix artist type
+            dispatch({
+              type: "SET_PLAYING_ALBUM",
+              payload: {
+                artist: album.artists
+                  .map((artist: any) => artist.name)
+                  .join(", "),
+                name: album.name,
+                tracks: album.tracks.items,
+                image: album.images[0].url,
+                duration: album.tracks.items.reduce(
+                  (acc: number, curr: Track) => acc + curr.duration_ms,
+                  0
+                ),
+              },
+            });
           });
-        });
 
-      // This is a bit odd here... it seems that unless the device is actually playing, then this call will fail. I don't know if this is fixable, but if users choose to enable shuffle manually and defeat the point of this, well then I don't know what we're doing...
-      fetch(
-        `https://api.spotify.com/v1/me/player/shuffle?device_id=${spotifyPlayer._options.id}&state=false`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${spotifyPlayer._options.id}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({ context_uri: `spotify:album:${uri}` }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      ).then((response) => {
-        if (!response.ok) {
-          console.log(response);
-          errorHandler("Could not start playback!");
-        }
+        // This is a bit odd here... it seems that unless the device is actually playing, then this call will fail. I don't know if this is fixable, but if users choose to enable shuffle manually and defeat the point of this, well then I don't know what we're doing...
+        fetch(
+          `https://api.spotify.com/v1/me/player/shuffle?device_id=${spotifyPlayer._options.id}&state=false`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${spotifyPlayer._options.id}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ context_uri: `spotify:album:${uri}` }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        ).then((response) => {
+          if (!response.ok) {
+            console.log(response);
+            errorHandler("Could not start playback!");
+          }
+        });
       });
-    });
-  };
+    },
+    [spotifyPlayer]
+  );
+
+  const pause = useCallback(async () => {}, [spotifyPlayer]);
+
   const errorHandler = (errorMessage: string) => {
     dispatch({
       type: "SET_ERROR",
@@ -125,42 +129,6 @@ export default function App({ session }) {
       },
     });
     setTimeout(() => dispatch({ type: "CLEAR_ERROR" }), 5000);
-  };
-
-  const pause = async () => {
-    if (!spotifyPlayer) {
-      console.error("Player not ready");
-      setTimeout(() => pause(), 5000);
-      return;
-    }
-    spotifyPlayer?._options?.getOAuthToken((token: string) => {
-      let url = "https://api.spotify.com/v1/me/player/pause";
-      if (!nowPlaying.playing) {
-        url = "https://api.spotify.com/v1/me/player/play";
-        dispatch({
-          type: "PLAYBACK_RESUMED",
-        });
-      } else {
-        dispatch({
-          type: "PLAYBACK_PAUSED",
-        });
-      }
-      fetch(url, {
-        method: "PUT",
-        body: JSON.stringify({
-          device_id: spotifyPlayer._options.id,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }).then((response) => {
-        if (!response.ok) {
-          console.log(response);
-          errorHandler("Could not play or pause!");
-        }
-      });
-    });
   };
 
   // TODO: this is a bit of an ugly type hack
@@ -265,7 +233,7 @@ export default function App({ session }) {
 
             dispatch({
               type: "UPDATE_MS_PLAYED",
-              data: state.position,
+              payload: state.position,
             });
           });
         }, 1000);
@@ -281,7 +249,7 @@ export default function App({ session }) {
 
   loadSpotifyPlayer();
 
-  const fetchTracks = (offset, limit) => {
+  const fetchTracks = (offset: number, limit: number) => {
     spotifyPlayer?._options?.getOAuthToken((token: string) => {
       fetch(
         `https://api.spotify.com/v1/me/tracks?limit=${limit}&offset=${offset}`,
@@ -329,12 +297,10 @@ export default function App({ session }) {
             dispatch({ type: "SET_ARTISTS", payload: fetchedArtists });
           });
           if (data.offset + data.limit > data.total) {
-            const getRandomArtist = () =>
-              Object.keys(artistsAndAlbums)[
-                Math.floor(Math.random() * Object.keys(artistsAndAlbums).length)
-              ];
-            setRandomArtists([getRandomArtist(), getRandomArtist()]);
-            setLoading(false);
+            dispatch({
+              type: "SET_LOADING",
+              loading: false,
+            });
             return;
           }
           dispatch({
@@ -350,6 +316,7 @@ export default function App({ session }) {
         .catch((err) => console.error(err));
     });
   };
+
   const fetchDevices = () => {
     spotifyPlayer?._options?.getOAuthToken((token: string) => {
       fetch(`https://api.spotify.com/v1/me/player/devices`, {
@@ -373,6 +340,7 @@ export default function App({ session }) {
         .catch((err) => console.error(err));
     });
   };
+
   useEffect(() => {
     const { offset, limit } = fetchStatus;
     fetchTracks(offset, limit);
@@ -407,27 +375,17 @@ export default function App({ session }) {
             <div className="w-1/5 h-full">
               <div className="flex flex-col h-full">
                 <div className="max-h-full overflow-hidden">
-                  <ArtistSearch
-                    artists={artistsAndAlbums}
-                    loading={loading}
-                    randomArtists={randomArtists}
-                    playWithSpotify={playWithSpotify}
-                  />
+                  <ArtistSearch />
                 </div>
                 <div className="flex-shrink-0 px-2 pb-4">
-                  <RecordPlayer nowPlaying={nowPlaying} pause={pause} />
+                  <RecordPlayer />
                 </div>
               </div>
             </div>
             <div className="flex flex-col w-4/5 h-full bg-brand-grey-800">
-              <CoverFlow
-                artists={artistsAndAlbums}
-                loading={loading}
-                fetchStatus={fetchStatus}
-                playWithSpotify={playWithSpotify}
-              />
+              <CoverFlow />
               <div className="flex-grow w-full h-full">
-                <NowPlayingPanel nowPlaying={nowPlaying} pause={pause} />
+                <NowPlayingPanel />
               </div>
             </div>
           </div>
@@ -460,3 +418,5 @@ function loadSpotifyPlayer(): Promise<any> {
     }
   });
 }
+
+export default memo(App);

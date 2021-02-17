@@ -1,4 +1,6 @@
-export default function SearchIcon() {
+import { memo } from "react";
+
+function SearchIcon() {
   return (
     <svg
       version="1.1"
@@ -37,3 +39,5 @@ export default function SearchIcon() {
     </svg>
   );
 }
+
+export default memo(SearchIcon);

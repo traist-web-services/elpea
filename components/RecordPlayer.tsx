@@ -1,19 +1,20 @@
-import styles from "@styles/RecordPlayer.module.scss";
+import { useContext } from "react";
 
-interface RecordPlayerProps {
-  nowPlaying: any;
-  pause: () => void;
-}
-export default function RecordPlayer({ nowPlaying, pause }: RecordPlayerProps) {
+import styles from "@styles/RecordPlayer.module.scss";
+import { StateContext } from "@contexts/AppContext";
+
+export default function RecordPlayer() {
+  const {
+    nowPlaying: {
+      playing,
+      msPlayed,
+      album: { duration, image, tracks },
+      track,
+    },
+  } = useContext(StateContext);
   const minAngle = 14; // Note, technically 12.5
   const maxAngle = 36; // Technically 37.5
   const difference = maxAngle - minAngle;
-  const {
-    playing,
-    msPlayed,
-    album: { duration, image, tracks },
-    track,
-  } = nowPlaying;
   // TODO: Fix the type here
   const trackIndex = tracks.findIndex((el: any) => {
     return el.name === track.name;
