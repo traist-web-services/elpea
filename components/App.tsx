@@ -374,7 +374,7 @@ function App() {
           <div className="flex items-stretch flex-grow w-full h-full">
             <div className="w-1/5 h-full">
               <div className="flex flex-col h-full">
-                <div className="max-h-full overflow-hidden">
+                <div className="h-full overflow-hidden">
                   <ArtistSearch />
                 </div>
                 <div className="flex-shrink-0 px-2 pb-4">

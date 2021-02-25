@@ -94,7 +94,7 @@ function ArtistSearch() {
       >
         Random
       </button>
-      <ul className="flex-grow h-full overflow-scroll scrollbar scrollbar-track-transparent scrollbar-thumb-brand-700">
+      <ul className="h-full overflow-scroll scrollbar scrollbar-track-transparent scrollbar-thumb-brand-700">
         {loading && <li className="h-full">Loading...</li>}
         {!loading &&
           filteredArtistList.map((artist) => (
