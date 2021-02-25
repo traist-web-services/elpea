@@ -4,8 +4,8 @@ import SpotifyIcon from "@components/Icons/SpotifyIcon";
 export default function Landing() {
   return (
     <div className="mx-auto max-w-prose">
-      <h1 className="mt-8 mb-8 text-6xl text-brand-grey-50">
-        Welcome to {process.env.brandName}.
+      <h1 className="mt-8 mb-8 text-6xl text-brand-grey-50 font-header">
+        {process.env.brandName}
       </h1>
       <p className="mb-2 text-2xl font-bold text-brand-grey-50">
         Hear your favourite artists, warts and all.

@@ -79,9 +79,12 @@ module.exports = {
           900: "#063047",
         },
       },
+      fontFamily: {
+        header: ["'Sarina'", ...defaultTheme.fontFamily.serif],
+      },
     },
     fontFamily: {
-      sans: ["Inter", ...defaultTheme.fontFamily.sans],
+      sans: [...defaultTheme.fontFamily.sans],
       serif: [...defaultTheme.fontFamily.serif],
       mono: [...defaultTheme.fontFamily.mono],
     },
