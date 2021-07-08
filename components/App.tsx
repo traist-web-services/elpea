@@ -241,6 +241,7 @@ function App() {
     });
 
     player.addListener("ready", ({ device_id }) => {
+      player.options.id = device_id;
       dispatch({ type: "SET_PLAYER", payload: player });
     });
 
