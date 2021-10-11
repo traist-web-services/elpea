@@ -34,7 +34,7 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async jwt(token: Token, user: User, account: Account, profile: Profile) {
+    async jwt(token, user, account, profile) {
       if (account?.accessToken) {
         token.accessToken = account.accessToken;
       }
@@ -54,7 +54,7 @@ export default NextAuth({
       }
       return refreshAccessToken(token);
     },
-    async session(session: Session, user: User) {
+    async session(session, user: User) {
       if (user) {
         session.user = user;
       }
@@ -63,7 +63,7 @@ export default NextAuth({
   },
 });
 
-async function refreshAccessToken(token: Token) {
+async function refreshAccessToken(token) {
   try {
     const url = `https://accounts.spotify.com/api/token`;
 
