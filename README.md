@@ -1,6 +1,6 @@
 # Elpea
 
-![Elpea](https://pbs.twimg.com/media/Et-inJsWgAA3X_b?format=jpg&name=large)
+![Elpea](public/elpea-mockup.jpg?raw=true)
 
 Once upon a time, music came on pieces of plastic. An LP (Long Play) record was 12" wide and spun at 33⅓ revolutions per minute.
 
