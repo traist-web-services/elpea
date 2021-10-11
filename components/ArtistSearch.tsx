@@ -96,6 +96,11 @@ function ArtistSearch() {
       </button>
       <ul className="h-full overflow-scroll scrollbar scrollbar-track-transparent scrollbar-thumb-brand-700">
         {loading && <li className="h-full">Loading...</li>}
+        {filteredArtistList.length === 0 && (
+          <li className="py-1 transition-colors duration-200 cursor-pointer hover:text-brand-grey-50 2xl:text-xl">
+            No artists found
+          </li>
+        )}
         {!loading &&
           filteredArtistList.map((artist) => (
             <li
