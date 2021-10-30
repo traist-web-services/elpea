@@ -1,19 +1,38 @@
-# Elpea
+# create-svelte
 
-![Elpea](public/elpea-mockup.jpg?raw=true)
+Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
 
-Once upon a time, music came on pieces of plastic. An LP (Long Play) record was 12" wide and spun at 33⅓ revolutions per minute.
+## Creating a project
 
-No 'shuffle', no 'skip', no 'repeat', no 'only play track 3'.
+If you're seeing this, you've probably already done this step. Congrats!
 
-An 'album' used to be two sides of about 20 minutes each. It was difficult to listen to tracks in any order other than the one the artist intended, and listening to something different in every track was so much hassle as to not be worth it.
+```bash
+# create a new project in the current directory
+npm init svelte@next
 
-Pepperidge Farm remembers.
+# create a new project in my-app
+npm init svelte@next my-app
+```
 
-Times moved on, and now, Spotify shuffles artists and tracks, and recommends and suggests... and it's great. It's an incredible advancement in technology, but it came at a price.
+> Note: the `@next` is temporary
 
-The 'B' sides. The 'concept album', where all songs follow a theme, or an idea. Artistic freedom suffers because every track needs to be a radio friendly unit shifter.
+## Developing
 
-Elpea wants to bring back the 'long play'. Make a cup of tea, pop a record on, and listen to every track on it.
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-It's even got a little crackle when you put a record on.
+```bash
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
+
+## Building
+
+Before creating a production version of your app, install an [adapter](https://kit.svelte.dev/docs#adapters) for your target environment. Then:
+
+```bash
+npm run build
+```
+
+> You can preview the built app with `npm run preview`, regardless of whether you installed an adapter. This should _not_ be used to serve your app in production.
