@@ -4,3 +4,6 @@ node_modules
 /.svelte-kit
 /package
 src/styles/tailwind-output.css
+.env.local
+.env
+.env.local
