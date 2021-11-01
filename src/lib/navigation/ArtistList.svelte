@@ -18,6 +18,11 @@
 				headers: { Authorization: 'Bearer ' + token }
 			});
 			const json = await res.json();
+
+			if ($savedTracks.length === json.total) {
+				console.log('All tracks in mem', $savedTracks.length);
+				break;
+			}
 			next = json.next;
 			savedTracks.update((savedTracks) => [...savedTracks, ...json.items]);
 		}
@@ -36,7 +41,7 @@
 		return uniqueArtists[pick];
 	};
 
-	$: namedArtists = $savedTracks.map((item) => item?.track?.artists[0]?.name);
+	$: namedArtists = $savedTracks?.map((item) => item?.track?.artists[0]?.name);
 	$: uniqueArtists = [...new Set(namedArtists)];
 	$: filteredArtists = uniqueArtists
 		.filter((el) => el.toLowerCase().indexOf(filter.toLowerCase()) > -1)
