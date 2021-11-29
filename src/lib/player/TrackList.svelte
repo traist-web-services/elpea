@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { album, track, playing } from '$lib/stores/nowPlaying';
 	let tracks = [];
-	tracks = $album?.tracks?.items || [];
-	tracks.sort((a, b) => a?.track_number - b?.track_number);
-	const artistList = $album.artists.map((artist) => artist.name).join(', ');
+	let artistList = '';
+	$: {
+		tracks = $album?.tracks?.items || [];
+		tracks.sort((a, b) => a?.track_number - b?.track_number);
+		artistList = $album.artists.map((artist) => artist.name).join(', ');
+	}
 </script>
 
 <div class="pl-6">
