@@ -55,7 +55,7 @@
 	populateTrackList();
 	$: filteredArtists = uniqueArtists
 		.filter((el) => el.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) > -1)
-		.sort((a, b) => a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase()));
+		.sort((a, b) => a.localeCompare(b, { sensitivity: 'base' }));
 </script>
 
 <div class="flex flex-col h-full">

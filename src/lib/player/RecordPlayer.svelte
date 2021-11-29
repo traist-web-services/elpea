@@ -10,7 +10,8 @@
 	let totalPlayed = 0;
 	let labelImage = '';
 
-	state.subscribe((val) => {
+	$: {
+		labelImage = $track?.album?.images[0].url;
 		albumDuration = $album?.tracks?.items.reduce(
 			(acc: number, curr: { duration_ms: number }) => acc + curr.duration_ms,
 			0
@@ -20,14 +21,10 @@
 		});
 		let playedTracks = $album?.tracks?.items?.slice(0, playingTrack);
 		totalPlayed =
-			val?.position + playedTracks?.reduce((acc: number, curr: any) => acc + curr.duration_ms, 0);
+			$state?.position +
+			playedTracks?.reduce((acc: number, curr: any) => acc + curr.duration_ms, 0);
 		rotationDegree = $playing ? minAngle + percentageComplete * (maxAngle - minAngle) : 0;
-		if (val) {
-			percentageComplete = totalPlayed / albumDuration;
-		}
-	});
-	$: {
-		labelImage = $track?.album?.images[0].url;
+		percentageComplete = totalPlayed / albumDuration;
 	}
 </script>
 

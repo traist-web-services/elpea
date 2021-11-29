@@ -3,7 +3,7 @@
 	import LogOut from '$lib/auth/LogOut.svelte';
 	import Player from '$lib/player/Player.svelte';
 	let user;
-	session.subscribe((val) => (user = val.user));
+	user = $session.user;
 </script>
 
 <nav class="flex items-center p-2 border-b-2 bg-brand-900 border-brand-400">
