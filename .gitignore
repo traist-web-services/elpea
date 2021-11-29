@@ -3,8 +3,8 @@ node_modules
 /build
 /.svelte-kit
 /package
-src/styles/tailwind-output.css
-.env.local
+/src/styles/tailwind-output.css
 .env
+.env.local
 .next
 .vercel
