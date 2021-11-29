@@ -15,10 +15,10 @@
 </svelte:head>
 
 <div class="flex h-full">
-	<div class="w-1/5 h-full p-2 bg-brand-grey-900">
+	<div class="w-1/5 h-full bg-brand-grey-900">
 		<LeftNav />
 	</div>
-	<div class="flex flex-col w-4/5 h-full p-2 bg-brand-grey-900">
+	<div class="flex flex-col w-4/5 h-full bg-brand-grey-900">
 		{#if $loading}
 			<div class="flex items-center justify-center w-full text-6xl text-brand-400">
 				<Loading />
@@ -27,7 +27,7 @@
 			<div class="flex-shrink-0">
 				<AlbumFlow />
 			</div>
-			<div class="flex-1">
+			<div class="flex-1 relative">
 				<TrackList />
 			</div>
 		{/if}

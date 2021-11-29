@@ -58,7 +58,7 @@
 		.sort((a, b) => a.localeCompare(b, { sensitivity: 'base' }));
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex flex-col h-full p-2">
 	<h2 class="p-2 pt-0 text-lg font-semibold text-brand-green-50">Search</h2>
 	<input
 		type="text"

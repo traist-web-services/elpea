@@ -2,14 +2,23 @@
 	import { album, track, playing } from '$lib/stores/nowPlaying';
 	let tracks = [];
 	let artistList = '';
+	let albumImg = '';
 	$: {
 		tracks = $album?.tracks?.items || [];
+		albumImg = $album?.images[0].url;
 		tracks.sort((a, b) => a?.track_number - b?.track_number);
 		artistList = $album.artists.map((artist) => artist.name).join(', ');
 	}
 </script>
 
-<div class="pl-6">
+<div
+	class="h-full absolute top-0 right-0"
+	style="aspect-ratio: 1/1; 
+			-webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.7), transparent 99%);"
+>
+	<img src={albumImg} class="object-cover" alt="Album cover" />
+</div>
+<div class="p-2 pl-6 h-full">
 	{#if $album}
 		<h2 class="font-bold text-5xl my-2 mt-6">
 			{$album?.name}

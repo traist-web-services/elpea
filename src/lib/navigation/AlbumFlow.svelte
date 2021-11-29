@@ -33,7 +33,7 @@
 	}
 </script>
 
-<h2 class="ml-2 text-2xl font-bold text-brand-50">Your Albums</h2>
+<h2 class="p-2 text-2xl font-bold text-brand-50">Your Albums</h2>
 
 <div
 	class="flex flex-row overflow-x-scroll overflow-y-hidden bg-brand-grey-900"
