@@ -3,6 +3,7 @@ export type Album = {
     items: Track[] & { duration_ms?: number; }
   }
   images: Image[];
+  name: string;
 };
 
 export type Artist = {
@@ -21,6 +22,7 @@ export type Track = {
   track: Track;
   track_number: number;
   name: string;
+  id: string;
   album: Album;
   duration_ms: number;
   artists: Artist[];

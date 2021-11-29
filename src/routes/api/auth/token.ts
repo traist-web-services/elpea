@@ -4,7 +4,7 @@ import cookie from 'cookie';
 
 const { VITE_REDIRECT_URI, VITE_SPOTIFY_CLIENT_ID, VITE_SPOTIFY_CLIENT_SECRET } = import.meta.env;
 
-export const get: RequestHandler = async ({ headers }) => {
+export const get: RequestHandler = async ({ headers, query }) => {
   const cookies = cookie.parse(headers.cookie || '');
   if (cookies.spotify_access_token) {
     return {
@@ -12,7 +12,9 @@ export const get: RequestHandler = async ({ headers }) => {
       body: JSON.stringify({ spotify_access_token: cookies.spotify_access_token })
     }
   }
-  if (!cookies.spotify_refresh_token) {
+
+  const refreshToken = cookies.spotify_refresh_token || query.get('spotify_refresh_token');
+  if (!refreshToken) {
     return {
       status: 401,
       body: 'No refresh token set'
@@ -20,7 +22,7 @@ export const get: RequestHandler = async ({ headers }) => {
   }
 
   const authOptions = {
-    refresh_token: cookies.spotify_refresh_token,
+    refresh_token: refreshToken,
     redirect_uri: VITE_REDIRECT_URI as string,
     grant_type: 'refresh_token'
   };

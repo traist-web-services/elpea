@@ -20,6 +20,7 @@ export const get: RequestHandler = async ({ query }) => {
     },
   });
 
+
   const response = await request.json();
 
   // redirect to front page in case of error

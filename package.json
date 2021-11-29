@@ -7,8 +7,8 @@
 		"preview": "svelte-kit preview",
 		"tailwind:watch": "cross-env TAILWIND_MODE=watch cross-env NODE_ENV=development postcss src/styles/tailwind.css -o src/styles/tailwind-output.css -w",
 		"tailwind:build": "cross-env TAILWIND_MODE=build cross-env NODE_ENV=production postcss src/styles/tailwind.css -o src/styles/tailwind-output.css",
-		"dev": "concurrently \"yarn run dev:only\" \"yarn run tailwind:watch\"",
-		"build": "yarn run tailwind:build && yarn run build:only",
+		"dev": "concurrently \"npm run dev:only\" \"npm run tailwind:watch\"",
+		"build": "npm run tailwind:build && npm run build:only",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
@@ -38,7 +38,7 @@
 	"type": "module",
 	"dependencies": {
 		"cookie": "^0.4.1",
-		"node-sass": "^6.0.1",
+		"node-sass": "^4.14.0",
 		"sass": "^1.43.4"
 	}
 }

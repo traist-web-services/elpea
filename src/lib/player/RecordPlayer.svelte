@@ -7,14 +7,9 @@
 	let rotationDegree = 0;
 	let percentageComplete = 0;
 	let albumDuration = 0;
-	let currentTrack = null;
 	let totalPlayed = 0;
 	let labelImage = '';
 
-	track.subscribe((val) => {
-		console.log(val);
-		currentTrack = val;
-	});
 	state.subscribe((val) => {
 		albumDuration = $album?.tracks?.items.reduce(
 			(acc: number, curr: { duration_ms: number }) => acc + curr.duration_ms,
@@ -32,8 +27,7 @@
 		}
 	});
 	$: {
-		console.log('running');
-		labelImage = currentTrack?.album?.images[0].url;
+		labelImage = $track?.album?.images[0].url;
 	}
 </script>
 
@@ -110,7 +104,6 @@
 		border-radius: 50%;
 		box-shadow: 0 0 0 4px var(--label), inset 0 0 0 0 var(--label),
 			inset 0 0 0 5px var(--record-black);
-		/* background-image: url('https://placehold.it/640x640'); */
 		background-size: contain;
 		background-position: 50% 50%;
 		&.playing {

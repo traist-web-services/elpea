@@ -7,3 +7,5 @@ src/styles/tailwind-output.css
 .env.local
 .env
 .env.local
+.next
+.vercel

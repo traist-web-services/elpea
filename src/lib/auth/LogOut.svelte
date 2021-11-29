@@ -4,7 +4,6 @@
 	let name = '';
 
 	session.subscribe((val) => {
-		console.log(val);
 		avatar =
 			(val && val.user && val.user.images && val.user.images[0] && val.user.images[0].url) ??
 			val?.user?.images[0]?.url;

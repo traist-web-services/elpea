@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { playAlbum } from '$lib/spotify/spotify';
 	import { session } from '$app/stores';
+
 	import { player } from '$lib/stores/player';
 	import { album as playingAlbum } from '$lib/stores/nowPlaying';
-	import { onMount } from 'svelte';
 	export let album = null;
 	export let scrollPos = 0;
 
@@ -15,25 +17,6 @@
 		clLeft = el.getBoundingClientRect().left;
 	});
 
-	const playAlbum = async () => {
-		const res = await fetch('https://api.spotify.com/v1/me/player/play?device_id=' + $player.id, {
-			method: 'PUT',
-			headers: { Authorization: 'Bearer ' + $session.user.access_token },
-			body: JSON.stringify({
-				context_uri: 'spotify:album:' + album.id
-			})
-		});
-		const albumFetch = await fetch(`https://api.spotify.com/v1/albums?ids=${album.id}`, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${$session.user.access_token}`
-			}
-		});
-		const albumJson = await albumFetch.json();
-
-		playingAlbum.set(albumJson.albums[0]);
-	};
 	$: bgString =
 		scrollPos > clLeft - 2000 ? `background-image: url('${album.images[0].url}')` : null;
 </script>
@@ -44,7 +27,9 @@
 	on:focus={() => (showLP = true)}
 	on:mouseout={() => (showLP = false)}
 	on:blur={() => (showLP = false)}
-	on:click={playAlbum}
+	on:click={async () => {
+		$playingAlbum = await playAlbum(album, $player, $session);
+	}}
 	bind:this={el}
 >
 	<div class="relative w-40 h-40 rounded">

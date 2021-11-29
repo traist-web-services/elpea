@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { savedTracks } from '$lib/stores/savedTracks';
 	import { loading } from '$lib/stores/loading';
-	import { onMount } from 'svelte';
 	import { getToken } from '$lib/auth/getToken';
+	import { playAlbum } from '$lib/spotify/spotify';
+	import { session } from '$app/stores';
+	import { player } from '$lib/stores/player';
+	import { album as playingAlbum } from '$lib/stores/nowPlaying';
+	import type { Track } from '$lib/types';
 
 	let namedArtists = [];
 	let uniqueArtists = [];
 	let filteredArtists = [];
 	let filter = '';
-	let example = '';
+	let example: Track = null;
 
-	onMount(async () => {
-		let next = 'https://api.spotify.com/v1/me/tracks';
+	let next = 'https://api.spotify.com/v1/me/tracks';
+	const populateTrackList = async () => {
 		const token = await getToken();
 		while (next) {
 			const res = await fetch(next, {
@@ -20,32 +24,38 @@
 			const json = await res.json();
 
 			if ($savedTracks.length === json.total) {
-				console.log('All tracks in mem', $savedTracks.length);
 				break;
 			}
 			next = json.next;
 			savedTracks.update((savedTracks) => [...savedTracks, ...json.items]);
 		}
 
-		example = randomArtist();
-		loading.set(false);
-	});
+		namedArtists = $savedTracks?.map((item) => item?.track?.artists[0]?.name);
+		uniqueArtists = [...new Set(namedArtists)];
+
+		example = randomTrack();
+		$loading = false;
+	};
 
 	const scrollElIn = (id: string) => {
 		document
 			.getElementById(id)
 			.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'start' });
 	};
-	const randomArtist = () => {
-		let pick = Math.floor(Math.random() * uniqueArtists.length);
-		return uniqueArtists[pick];
+	const randomTrack = () => {
+		let pick = Math.floor(Math.random() * $savedTracks.length);
+		return $savedTracks[pick];
 	};
 
-	$: namedArtists = $savedTracks?.map((item) => item?.track?.artists[0]?.name);
-	$: uniqueArtists = [...new Set(namedArtists)];
+	const playRandomAlbum = async () => {
+		const albumId = randomTrack().track.album;
+		$playingAlbum = await playAlbum(albumId, $player, $session);
+	};
+
+	populateTrackList();
 	$: filteredArtists = uniqueArtists
-		.filter((el) => el.toLowerCase().indexOf(filter.toLowerCase()) > -1)
-		.sort();
+		.filter((el) => el.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) > -1)
+		.sort((a, b) => a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase()));
 </script>
 
 <div class="flex flex-col h-full">
@@ -54,14 +64,14 @@
 		type="text"
 		bind:value={filter}
 		class="p-1 border-2 rounded-full bg-brand-50 border-brand-300"
-		placeholder="eg: {example}"
+		placeholder={example?.track?.artists[0]?.name ?? 'Loading...'}
 	/>
 	<button
-		on:click={() => (filter = randomArtist())}
+		on:click={playRandomAlbum}
 		class="p-1 my-2 text-sm font-semibold tracking-widest uppercase border-2 rounded-full bg-brand-500 text-brand-50 border-brand-300"
 		>Random</button
 	>
-	<div class="overflow-scroll">
+	<div class="overflow-auto overflow-x-hidden">
 		<ul>
 			{#each filteredArtists as artist (artist)}
 				<!-- svelte-ignore a11y-missing-attribute because this is not an actual link for navigation purposes -->

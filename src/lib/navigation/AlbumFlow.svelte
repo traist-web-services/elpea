@@ -3,8 +3,6 @@
 	import { loading } from '$lib/stores/loading';
 	import { savedTracks } from '$lib/stores/savedTracks';
 	import { onMount } from 'svelte';
-	import type { HtmlTag } from 'svelte/internal';
-	import ArtistList from './ArtistList.svelte';
 
 	let albums = [];
 	let artists = {};

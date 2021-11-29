@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { session } from '$app/stores';
+	import { browser } from '$app/env';
 	import { player } from '$lib/stores/player';
 	import { track, playing, state } from '$lib/stores/nowPlaying';
 
-	import { onMount } from 'svelte';
-
-	onMount(() => {
+	if (browser) {
 		const script = document.createElement('script');
 		script.src = 'https://sdk.scdn.co/spotify-player.js';
 		script.async = true;
@@ -42,7 +40,7 @@
 				playing.set(thisState && !thisState.paused);
 			});
 			spotify_player.connect();
-			player.set(spotify_player);
+			$player = spotify_player;
 		};
-	});
+	}
 </script>
