@@ -4,6 +4,7 @@ export type Album = {
   }
   images: Image[];
   name: string;
+  artists: Artist[];
 };
 
 export type Artist = {
